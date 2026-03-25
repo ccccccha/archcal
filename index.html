@@ -89,8 +89,11 @@
         class="pointer-events-none absolute inset-0 z-20 translate-x-full opacity-0 transition-all duration-500 ease-out"
         aria-hidden="true"
       >
-        <div class="flex min-h-screen items-center justify-center px-6 py-14">
-          <div class="w-full max-w-4xl rounded-2xl border border-black/10 bg-white/95 p-6 shadow-sm backdrop-blur sm:p-10">
+        <div class="flex min-h-screen items-stretch justify-center px-6 py-10">
+          <div
+            class="relative w-full max-w-4xl rounded-2xl border border-black/10 bg-white/95 p-6 shadow-sm backdrop-blur sm:p-10"
+            style="max-height: calc(100vh - 5rem);"
+          >
             <div class="mb-8">
               <div class="mb-8">
                 <div class="relative pt-2">
@@ -100,7 +103,7 @@
                     class="absolute left-0 top-[18px] h-[2px] bg-black transition-all duration-500 ease-out"
                     style="width: 0%;"
                   ></div>
-                  <div class="relative grid grid-cols-4 gap-2">
+                  <div class="relative grid grid-cols-5 gap-2">
                     <div class="text-center">
                       <span
                         data-step-dot="1"
@@ -124,7 +127,7 @@
                         data-step-label="2"
                         class="mt-2 font-heading text-xs font-semibold tracking-wide text-black/45 transition-colors duration-300"
                       >
-                        Cost Details
+                        Construction Costs
                       </p>
                     </div>
                     <div class="text-center">
@@ -137,7 +140,7 @@
                         data-step-label="3"
                         class="mt-2 font-heading text-xs font-semibold tracking-wide text-black/45 transition-colors duration-300"
                       >
-                        Architect Info
+                        Operations
                       </p>
                     </div>
                     <div class="text-center">
@@ -148,6 +151,19 @@
                       >
                       <p
                         data-step-label="4"
+                        class="mt-2 font-heading text-xs font-semibold tracking-wide text-black/45 transition-colors duration-300"
+                      >
+                        Design & Fees
+                      </p>
+                    </div>
+                    <div class="text-center">
+                      <span
+                        data-step-dot="5"
+                        class="mx-auto flex h-9 w-9 items-center justify-center rounded-full border border-black/30 bg-white font-heading text-sm font-semibold text-black/45 transition-colors duration-300"
+                        >5</span
+                      >
+                      <p
+                        data-step-label="5"
                         class="mt-2 font-heading text-xs font-semibold tracking-wide text-black/45 transition-colors duration-300"
                       >
                         Results
@@ -161,7 +177,7 @@
                 id="stepCounterText"
                 class="font-heading text-sm font-semibold uppercase tracking-[0.14em] text-black/50"
               >
-                Step 1 of 4
+                Step 1 of 5
               </p>
               <h2 id="stepTitleText" class="mt-2 font-heading text-3xl font-bold sm:text-4xl">
                 Project Info
@@ -171,7 +187,10 @@
               </p>
             </div>
 
-            <form class="grid grid-cols-1 gap-6 sm:grid-cols-2" novalidate>
+            <div class="flex h-full flex-col">
+              <div class="flex-1 overflow-y-auto pb-36">
+                <form id="multiStepForm" class="space-y-8" novalidate>
+                  <div data-step-panel="1" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div class="sm:col-span-1">
                 <label for="projectType" class="font-heading text-sm font-semibold text-black"
                   >Project Type</label
@@ -296,38 +315,512 @@
                 </div>
                 <p class="mt-2 text-sm text-black/55">Starting budget helps anchor expectation alignment.</p>
               </div>
+                  </div>
 
-              <div class="mt-3 flex items-center justify-between gap-3 sm:col-span-2">
-                <button
-                  id="backToHeroBtn"
-                  type="button"
-                  class="rounded-full border border-black/20 bg-transparent px-6 py-3 font-medium text-black transition hover:border-black"
-                >
-                  ← Back
-                </button>
-                <button
-                  id="nextStepBtn"
-                  type="button"
-                  class="rounded-full bg-black px-7 py-3 font-medium text-white transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-                >
-                  Next →
-                </button>
+              <div data-step-panel="2" class="hidden space-y-8">
+                <div class="space-y-2">
+                  <h3 class="font-heading text-lg font-bold">Construction Costs</h3>
+                  <p class="text-sm text-black/55">Select each work scope and set its cost rate.</p>
+                </div>
+
+                <div class="rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+                  <div class="space-y-5">
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="scope_arch_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Architecture (Structure + Facade)</span>
+                      </label>
+                      <div id="scope_arch_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+                          <div>
+                            <label for="scope_arch_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                            <input id="scope_arch_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                          </div>
+                          <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
+                              <div class="flex flex-wrap items-center gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_arch_mode_default" type="radio" name="scope_arch_mode" value="default" class="h-4 w-4 accent-black" />
+                                  Use default
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_arch_mode_own" type="radio" name="scope_arch_mode" value="own" class="h-4 w-4 accent-black" />
+                                  Enter my own
+                                </label>
+                              </div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                              <input id="scope_arch_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                              <span class="text-sm text-black/55">THB/sqm</span>
+                            </div>
+                            <p id="scope_arch_hint" class="mt-2 text-sm text-black/55">Range: —</p>
+                          </div>
+                          <div class="sm:text-right">
+                            <p class="text-sm text-black/55">Subtotal</p>
+                            <p id="scope_arch_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="h-px bg-black/10"></div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="scope_int_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Interior Design</span>
+                      </label>
+                      <div id="scope_int_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+                          <div>
+                            <label for="scope_int_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                            <input id="scope_int_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                          </div>
+                          <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
+                              <div class="flex flex-wrap items-center gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_int_mode_default" type="radio" name="scope_int_mode" value="default" class="h-4 w-4 accent-black" />
+                                  Use default
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_int_mode_own" type="radio" name="scope_int_mode" value="own" class="h-4 w-4 accent-black" />
+                                  Enter my own
+                                </label>
+                              </div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                              <input id="scope_int_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                              <span class="text-sm text-black/55">THB/sqm</span>
+                            </div>
+                            <p id="scope_int_hint" class="mt-2 text-sm text-black/55">Range: —</p>
+                          </div>
+                          <div class="sm:text-right">
+                            <p class="text-sm text-black/55">Subtotal</p>
+                            <p id="scope_int_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="h-px bg-black/10"></div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="scope_land_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Landscape</span>
+                      </label>
+                      <div id="scope_land_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+                          <div>
+                            <label for="scope_land_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                            <input id="scope_land_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                          </div>
+                          <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
+                              <div class="flex flex-wrap items-center gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_land_mode_default" type="radio" name="scope_land_mode" value="default" class="h-4 w-4 accent-black" />
+                                  Use default
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_land_mode_own" type="radio" name="scope_land_mode" value="own" class="h-4 w-4 accent-black" />
+                                  Enter my own
+                                </label>
+                              </div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                              <input id="scope_land_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                              <span class="text-sm text-black/55">THB/sqm</span>
+                            </div>
+                            <p id="scope_land_hint" class="mt-2 text-sm text-black/55">Range: —</p>
+                          </div>
+                          <div class="sm:text-right">
+                            <p class="text-sm text-black/55">Subtotal</p>
+                            <p id="scope_land_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="h-px bg-black/10"></div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="scope_demo_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Demolition / Renovation</span>
+                      </label>
+                      <div id="scope_demo_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+                          <div>
+                            <label for="scope_demo_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                            <input id="scope_demo_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                          </div>
+                          <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
+                              <div class="flex flex-wrap items-center gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_demo_mode_default" type="radio" name="scope_demo_mode" value="default" class="h-4 w-4 accent-black" />
+                                  Use default
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                  <input id="scope_demo_mode_own" type="radio" name="scope_demo_mode" value="own" class="h-4 w-4 accent-black" />
+                                  Enter my own
+                                </label>
+                              </div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                              <input id="scope_demo_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                              <span class="text-sm text-black/55">THB/sqm</span>
+                            </div>
+                            <p id="scope_demo_hint" class="mt-2 text-sm text-black/55">Range: —</p>
+                          </div>
+                          <div class="sm:text-right">
+                            <p class="text-sm text-black/55">Subtotal</p>
+                            <p id="scope_demo_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-black/10 bg-white p-5">
+                  <p class="text-sm text-black/55">Selected scopes</p>
+                  <div id="scopeSummaryList" class="mt-4 space-y-2"></div>
+                  <div class="my-4 h-px bg-black/10"></div>
+                  <div class="flex items-end justify-between gap-4">
+                  <p class="font-heading text-sm font-semibold text-black/60">Total Construction Cost</p>
+                    <p id="totalScopeCostText" class="font-heading text-3xl font-bold">฿ 0</p>
+                  </div>
+                </div>
               </div>
-            </form>
+
+              <div data-step-panel="3" class="hidden space-y-8">
+                <div class="space-y-2">
+                  <h3 class="font-heading text-lg font-bold">Operations</h3>
+                  <p class="text-sm text-black/55">Estimate costs the client needs to open and run.</p>
+                </div>
+
+                <div class="rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+                  <div class="space-y-4">
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="ops_furniture_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Furniture & Décor</span>
+                      </label>
+                      <div id="ops_furniture_fields" class="mt-3 hidden">
+                        <input id="ops_furniture_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                      </div>
+                    </div>
+
+                    <div id="ops_kitchen_block">
+                      <label class="flex items-center gap-3">
+                        <input id="ops_kitchen_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Kitchen Equipment</span>
+                      </label>
+                      <div id="ops_kitchen_fields" class="mt-3 hidden">
+                        <input id="ops_kitchen_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                      </div>
+                    </div>
+
+                    <div id="ops_pos_block">
+                      <label class="flex items-center gap-3">
+                        <input id="ops_pos_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">POS & Technology</span>
+                      </label>
+                      <div id="ops_pos_fields" class="mt-3 hidden">
+                        <input id="ops_pos_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="ops_signage_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Signage & Branding</span>
+                      </label>
+                      <div id="ops_signage_fields" class="mt-3 hidden">
+                        <input id="ops_signage_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="ops_cleaning_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Cleaning & Handover</span>
+                      </label>
+                      <div id="ops_cleaning_fields" class="mt-3 hidden">
+                        <input id="ops_cleaning_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="ops_franchise_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Franchise / Brand Fee</span>
+                      </label>
+                      <div id="ops_franchise_fields" class="mt-3 hidden space-y-2">
+                        <input id="ops_franchise_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <p class="text-sm text-black/55">deposit, license, royalty</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="flex items-center gap-3">
+                        <input id="ops_preopen_enabled" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                        <span class="font-heading text-sm font-semibold text-black">Pre-opening Operations</span>
+                      </label>
+                      <div id="ops_preopen_fields" class="mt-3 hidden space-y-2">
+                        <input id="ops_preopen_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <p class="text-sm text-black/55">staff training, stock, soft launch</p>
+                      </div>
+                    </div>
+
+                    <div class="pt-2">
+                      <button id="addOpsItemBtn" type="button" class="rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-medium text-black transition hover:border-black/30">
+                        + Add custom item
+                      </button>
+                    </div>
+
+                    <div id="opsCustomList" class="space-y-3"></div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-black/10 bg-white p-5">
+                  <p class="text-sm text-black/55">Selected items</p>
+                  <div id="opsSummaryList" class="mt-4 space-y-2"></div>
+                  <div class="my-4 h-px bg-black/10"></div>
+                  <div class="flex items-end justify-between gap-4">
+                    <p class="font-heading text-sm font-semibold text-black/60">Total Operations Cost</p>
+                    <p id="totalOpsCostText" class="font-heading text-3xl font-bold">฿ 0</p>
+                  </div>
+                </div>
+              </div>
+
+              <div data-step-panel="4" class="hidden space-y-8">
+                <div class="space-y-2">
+                  <h3 class="font-heading text-lg font-bold">Design & Fees</h3>
+                  <p class="text-sm text-black/55">Professional fees and authority requirements.</p>
+                </div>
+
+                <div class="space-y-4">
+                  <h4 class="font-heading text-base font-bold">Architect Design Fee</h4>
+                  <div class="rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <label for="designFeePercentInput" class="font-heading text-sm font-semibold text-black"
+                        >Fee % (of total scope cost)</label
+                      >
+                      <div class="flex items-center gap-2">
+                        <input
+                          id="designFeePercentInput"
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          inputmode="decimal"
+                          class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52"
+                          placeholder="e.g. 8.5"
+                        />
+                        <span class="text-sm text-black/55">%</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 space-y-2">
+                      <div class="grid grid-cols-3 overflow-hidden rounded-xl border border-black/10">
+                        <div id="feeZoneAffordable" class="px-3 py-3 text-center text-xs font-semibold text-black/70 transition-opacity" style="background:#22c55e33;">
+                          Green (5–7.5%) — Standard
+                        </div>
+                        <div id="feeZoneNormal" class="px-3 py-3 text-center text-xs font-semibold text-black/70 transition-opacity" style="background:#f59e0b33;">
+                          Amber (7.5–12%) — Experienced
+                        </div>
+                        <div id="feeZonePremium" class="px-3 py-3 text-center text-xs font-semibold text-white transition-opacity" style="background:#1a7cff;">
+                          Blue (12%+) — Specialist
+                        </div>
+                      </div>
+                    </div>
+
+                    <p id="designFeeAmountText" class="mt-6 font-heading text-3xl font-bold">Design Fee: ฿ 0</p>
+                  </div>
+                </div>
+
+                <div class="h-px bg-black/10"></div>
+
+                <div class="space-y-4">
+                  <h4 class="font-heading text-base font-bold">Authority Submission</h4>
+                  <div class="rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+                    <label class="flex items-center gap-3">
+                      <input id="requiresSubmissionToggle" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" />
+                      <span class="font-heading text-sm font-semibold text-black">Requires authority submission</span>
+                    </label>
+                    <div id="submissionFieldsWrap" class="mt-5 hidden space-y-5">
+                      <div>
+                        <label for="submissionFeeInput" class="font-heading text-sm font-semibold text-black">Submission fee</label>
+                        <div class="mt-2 flex items-center gap-2">
+                          <input id="submissionFeeInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" />
+                          <span class="text-sm text-black/55">THB</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label for="structEngFeeInput" class="font-heading text-sm font-semibold text-black">Structural engineering</label>
+                        <div class="mt-2 flex items-center gap-2">
+                          <input id="structEngFeeInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" />
+                          <span class="text-sm text-black/55">THB</span>
+                        </div>
+                        <p class="mt-2 text-sm text-black/55">Default: area × 1,000 THB</p>
+                        <p class="mt-1 text-sm text-black/55">
+                          Suggested default:
+                          <span id="structEngSuggestedText" class="font-heading font-semibold text-black">—</span>
+                        </p>
+                      </div>
+                      <div>
+                        <label for="consultantFeesInput" class="font-heading text-sm font-semibold text-black">Other consultants (optional)</label>
+                        <div class="mt-2 flex items-center gap-2">
+                          <input id="consultantFeesInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="0" />
+                          <span class="text-sm text-black/55">THB</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="h-px bg-black/10"></div>
+
+                <div class="space-y-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 class="font-heading text-base font-bold">Additional Items</h4>
+                      <p class="mt-1 text-sm text-black/55">Dynamic add/remove rows (label + amount).</p>
+                    </div>
+                    <button id="addFeeItemBtn" type="button" class="rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-medium text-black transition hover:border-black/30">
+                      + Add item
+                    </button>
+                  </div>
+                  <div class="rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+                    <div id="feeItemsList" class="space-y-3"></div>
+                    <div class="mt-5 flex items-center justify-between border-t border-black/10 pt-4">
+                      <p class="text-sm text-black/55">Additional items total</p>
+                      <p id="feeItemsSubtotalText" class="font-heading text-lg font-bold">฿ 0</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-black/10 bg-white p-5">
+                  <p class="text-sm text-black/55">Summary</p>
+                  <div class="mt-4 space-y-3 text-sm">
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Design fee</p>
+                      <p id="summaryDesignFeeText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Submission</p>
+                      <p id="summarySubmissionFeeText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Structural Engineer Fee</p>
+                      <p id="summaryStructEngText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Consultants</p>
+                      <p id="summaryConsultantsText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Additional</p>
+                      <p id="summaryAdditionalItemsText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="my-3 h-px bg-black/10"></div>
+                    <div class="flex items-center justify-between">
+                      <p class="font-heading font-semibold">Total Design & Fees</p>
+                      <p id="summaryTotalDesignFeesText" class="font-heading text-lg font-bold">฿ 0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div data-step-panel="5" class="hidden space-y-6">
+                <div class="rounded-2xl border border-black/10 bg-white p-5">
+                  <p class="text-sm text-black/55">Results coming next — all totals will appear here.</p>
+                </div>
+                <div class="rounded-2xl border border-black/10 bg-white p-5">
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Total Scope Cost</p>
+                      <p id="resultsScopeTotalText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Total Operations</p>
+                      <p id="resultsOpsTotalText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Total Design & Fees</p>
+                      <p id="resultsDesignFeesTotalText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="my-3 h-px bg-black/10"></div>
+                    <div class="flex items-center justify-between">
+                      <p class="font-heading font-semibold">GRAND TOTAL</p>
+                      <p id="resultsGrandTotalText" class="font-heading text-lg font-bold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">First Budget</p>
+                      <p id="resultsFirstBudgetText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <p class="text-black/60">Gap</p>
+                      <p id="resultsGapText" class="font-heading font-semibold">฿ 0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="stickyNavBar"
+          class="fixed bottom-0 left-0 right-0 z-30 border-t border-black/10 bg-white/95 backdrop-blur"
+        >
+          <div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-6 py-4">
+            <button
+              id="backToHeroBtn"
+              type="button"
+              class="rounded-full border border-black/20 bg-transparent px-6 py-3 font-medium text-black transition hover:border-black"
+            >
+              ← Back
+            </button>
+            <button
+              id="nextStepBtn"
+              type="button"
+              class="rounded-full bg-black px-7 py-3 font-medium text-white transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+            >
+              Next →
+            </button>
           </div>
         </div>
       </section>
     </main>
 
-    <script>
+    <script src="data.js"></script>
+    <script src="calculator.js"></script>
+    <!-- inline logic removed; handled by calculator.js -->
+    <!--
       (function () {
         const SQFT_PER_SQM = 10.7639;
         const startButton = document.getElementById("startCalculationBtn");
         const backButton = document.getElementById("backToHeroBtn");
         const heroSection = document.getElementById("heroSection");
         const stepOneSection = document.getElementById("stepOneSection");
+
         const areaInput = document.getElementById("projectAreaInput");
         const areaUnitSelect = document.getElementById("areaUnitSelect");
+        const projectTypeSelect = document.getElementById("projectType");
+        const structureTypeSelect = document.getElementById("structureType");
+        const buildingFormSelect = document.getElementById("buildingForm");
+        const siteLocationSelect = document.getElementById("siteLocation");
+
         const nextButton = document.getElementById("nextStepBtn");
         const progressFill = document.getElementById("progressFill");
         const stepCounterText = document.getElementById("stepCounterText");
@@ -335,6 +828,66 @@
         const stepDescriptionText = document.getElementById("stepDescriptionText");
         const stepDots = Array.from(document.querySelectorAll("[data-step-dot]"));
         const stepLabels = Array.from(document.querySelectorAll("[data-step-label]"));
+        const stepPanels = Array.from(document.querySelectorAll("[data-step-panel]"));
+
+        const scopeArchitectureToggle = document.getElementById("scopeArchitectureToggle");
+        const scopeArchitectureAreaWrap = document.getElementById("scopeArchitectureAreaWrap");
+        const scopeArchitectureArea = document.getElementById("scopeArchitectureArea");
+        const scopeInteriorToggle = document.getElementById("scopeInteriorToggle");
+        const scopeInteriorAreaWrap = document.getElementById("scopeInteriorAreaWrap");
+        const scopeInteriorArea = document.getElementById("scopeInteriorArea");
+        const scopeLandscapeToggle = document.getElementById("scopeLandscapeToggle");
+        const scopeLandscapeAreaWrap = document.getElementById("scopeLandscapeAreaWrap");
+        const scopeLandscapeArea = document.getElementById("scopeLandscapeArea");
+        const scopeDemoToggle = document.getElementById("scopeDemoToggle");
+        const scopeDemoAreaWrap = document.getElementById("scopeDemoAreaWrap");
+        const scopeDemoArea = document.getElementById("scopeDemoArea");
+        const scopedAreaTotalText = document.getElementById("scopedAreaTotalText");
+
+        const costModeMarket = document.getElementById("costModeMarket");
+        const costModeOwn = document.getElementById("costModeOwn");
+        const costPerSqmInput = document.getElementById("costPerSqmInput");
+        const marketRangeHint = document.getElementById("marketRangeHint");
+
+        const complexityMultiplierText = document.getElementById("complexityMultiplierText");
+        const complexityWarning = document.getElementById("complexityWarning");
+        const conservativeTotalText = document.getElementById("conservativeTotalText");
+        const realisticTotalText = document.getElementById("realisticTotalText");
+        const stretchTotalText = document.getElementById("stretchTotalText");
+
+        const timelineMonthsInput = document.getElementById("timelineMonthsInput");
+        const timelineHintText = document.getElementById("timelineHintText");
+        const timelineWarningText = document.getElementById("timelineWarningText");
+        const timelineMinimumText = document.getElementById("timelineMinimumText");
+
+        const formatInt = (n) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
+        const formatMoneyTHB = (n) => `${formatInt(n)} THB`;
+        const formatBaht = (n) => `฿ ${formatInt(n)}`;
+
+        const designFeePercentInput = document.getElementById("designFeePercentInput");
+        const feeZoneAffordable = document.getElementById("feeZoneAffordable");
+        const feeZoneNormal = document.getElementById("feeZoneNormal");
+        const feeZonePremium = document.getElementById("feeZonePremium");
+        const designFeeAmountText = document.getElementById("designFeeAmountText");
+
+        const requiresSubmissionToggle = document.getElementById("requiresSubmissionToggle");
+        const submissionFieldsWrap = document.getElementById("submissionFieldsWrap");
+        const submissionFeeInput = document.getElementById("submissionFeeInput");
+        const structEngFeeInput = document.getElementById("structEngFeeInput");
+        const structEngSuggestedText = document.getElementById("structEngSuggestedText");
+        const consultantFeesInput = document.getElementById("consultantFeesInput");
+
+        const addFeeItemBtn = document.getElementById("addFeeItemBtn");
+        const feeItemsList = document.getElementById("feeItemsList");
+        const feeItemsSubtotalText = document.getElementById("feeItemsSubtotalText");
+
+        const summaryDesignFeeText = document.getElementById("summaryDesignFeeText");
+        const summarySubmissionFeeText = document.getElementById("summarySubmissionFeeText");
+        const summaryStructEngText = document.getElementById("summaryStructEngText");
+        const summaryConsultantsText = document.getElementById("summaryConsultantsText");
+        const summaryAdditionalItemsText = document.getElementById("summaryAdditionalItemsText");
+        const summaryTotalDesignFeesText = document.getElementById("summaryTotalDesignFeesText");
+
         const stepMeta = [
           {
             title: "Project Info",
@@ -345,8 +898,12 @@
             description: "Add material and scope assumptions to build a more precise cost outlook."
           },
           {
-            title: "Architect Info",
-            description: "Capture fee structure and service scope before final budget presentation."
+            title: "Design & Fees",
+            description: "Estimate design fees, submission costs, consultants, and additional items."
+          },
+          {
+            title: "Operations",
+            description: "Operational assumptions and project overhead (coming next)."
           },
           {
             title: "Results",
@@ -355,6 +912,275 @@
         ];
         const TOTAL_STEPS = stepMeta.length;
         let currentStep = 1;
+        let lastMarketRange = null;
+        let latestRealisticConstructionCostTHB = 0;
+
+        function getProjectAreaSqm() {
+          const raw = Number.parseFloat(areaInput.value);
+          if (!Number.isFinite(raw) || raw < 0) return 0;
+          const unit = areaUnitSelect.value;
+          if (unit === "sqft") return raw / SQFT_PER_SQM;
+          return raw;
+        }
+
+        function getComplexityMultiplier(formValue) {
+          if (formValue === "L-Shape") return 1.12;
+          if (formValue === "Complex/Freeform") return 1.25;
+          return 1.0;
+        }
+
+        function getScopedAreaTotalSqm() {
+          const items = [
+            { enabled: scopeArchitectureToggle.checked, areaEl: scopeArchitectureArea },
+            { enabled: scopeInteriorToggle.checked, areaEl: scopeInteriorArea },
+            { enabled: scopeLandscapeToggle.checked, areaEl: scopeLandscapeArea },
+            { enabled: scopeDemoToggle.checked, areaEl: scopeDemoArea }
+          ];
+          return items.reduce((sum, item) => {
+            if (!item.enabled) return sum;
+            const v = Number.parseFloat(item.areaEl.value);
+            if (!Number.isFinite(v) || v < 0) return sum;
+            return sum + v;
+          }, 0);
+        }
+
+        function updateScopeUi() {
+          scopeArchitectureAreaWrap.classList.toggle("hidden", !scopeArchitectureToggle.checked);
+          scopeInteriorAreaWrap.classList.toggle("hidden", !scopeInteriorToggle.checked);
+          scopeLandscapeAreaWrap.classList.toggle("hidden", !scopeLandscapeToggle.checked);
+          scopeDemoAreaWrap.classList.toggle("hidden", !scopeDemoToggle.checked);
+        }
+
+        function refreshMarketRateUi() {
+          const location = siteLocationSelect.value || "Bangkok";
+          const projectType = projectTypeSelect.value || "Other";
+          const structureType = structureTypeSelect.value || "Concrete";
+          const range =
+            window.ARCHCALC_DATA?.getMarketRangeTHBPerSqm?.({ location, projectType, structureType }) || null;
+          lastMarketRange = range;
+
+          if (!range) {
+            marketRangeHint.textContent = "Market range: —";
+            return;
+          }
+
+          marketRangeHint.textContent = `Market range for this project type in ${location}: ${formatInt(
+            range.min
+          )} – ${formatInt(range.max)} THB/sqm`;
+
+          if (costModeMarket.checked) {
+            const mid = Math.round((range.min + range.max) / 2);
+            costPerSqmInput.value = String(mid);
+          }
+        }
+
+        function refreshCostModeUi() {
+          if (costModeMarket.checked) {
+            costPerSqmInput.readOnly = true;
+            costPerSqmInput.classList.add("bg-black/5");
+            refreshMarketRateUi();
+          } else {
+            costPerSqmInput.readOnly = false;
+            costPerSqmInput.classList.remove("bg-black/5");
+            if (!Number.isFinite(Number.parseFloat(costPerSqmInput.value)) && lastMarketRange) {
+              costPerSqmInput.value = String(Math.round((lastMarketRange.min + lastMarketRange.max) / 2));
+            }
+          }
+        }
+
+        function refreshEstimatesUi() {
+          const scopedArea = getScopedAreaTotalSqm();
+          scopedAreaTotalText.textContent = scopedArea > 0 ? formatInt(Math.round(scopedArea)) : "—";
+
+          const rate = Number.parseFloat(costPerSqmInput.value);
+          const safeRate = Number.isFinite(rate) && rate > 0 ? rate : 0;
+
+          const buildingForm = buildingFormSelect.value;
+          const realisticMultiplier = getComplexityMultiplier(buildingForm);
+          complexityMultiplierText.textContent = `${realisticMultiplier.toFixed(2)}×`;
+
+          const location = siteLocationSelect.value || "Bangkok";
+          const showComplexWarning = buildingForm === "Complex/Freeform" && location !== "Bangkok";
+          complexityWarning.classList.toggle("hidden", !showComplexWarning);
+
+          const conservative = Math.round(scopedArea * safeRate * 1.0);
+          const realistic = Math.round(scopedArea * safeRate * realisticMultiplier);
+          const stretch = Math.round(realistic * 1.3);
+          latestRealisticConstructionCostTHB = realistic;
+
+          conservativeTotalText.textContent = conservative > 0 ? formatMoneyTHB(conservative) : "—";
+          realisticTotalText.textContent = realistic > 0 ? formatMoneyTHB(realistic) : "—";
+          stretchTotalText.textContent = stretch > 0 ? formatMoneyTHB(stretch) : "—";
+
+          if (currentStep >= 3) refreshDesignFeesUi();
+        }
+
+        function getSuggestedStructEngFeeTHB() {
+          const areaSqm = getProjectAreaSqm();
+          const suggested = Math.round(areaSqm * 1000);
+          return suggested > 0 ? suggested : 0;
+        }
+
+        function updateFeeZoneHighlight(percent) {
+          const p = Number.isFinite(percent) ? percent : NaN;
+          const isAffordable = Number.isFinite(p) && p >= 5 && p < 7.5;
+          const isNormal = Number.isFinite(p) && p >= 7.5 && p < 12;
+          const isPremium = Number.isFinite(p) && p >= 12;
+          const none = !isAffordable && !isNormal && !isPremium;
+
+          const setActive = (el, active) => {
+            el.classList.toggle("opacity-40", !active);
+            el.classList.toggle("opacity-100", active);
+            el.classList.toggle("ring-2", active);
+            el.classList.toggle("ring-black/30", active);
+            el.classList.toggle("ring-inset", active);
+          };
+
+          setActive(feeZoneAffordable, isAffordable);
+          setActive(feeZoneNormal, isNormal);
+          setActive(feeZonePremium, isPremium);
+
+          if (none) {
+            [feeZoneAffordable, feeZoneNormal, feeZonePremium].forEach((el) => {
+              el.classList.add("opacity-40");
+              el.classList.remove("ring-2", "ring-black/30", "ring-inset", "opacity-100");
+            });
+          }
+        }
+
+        function getFeeItemsSubtotalTHB() {
+          const rows = Array.from(feeItemsList.querySelectorAll("[data-fee-item-row]"));
+          return rows.reduce((sum, row) => {
+            const amountEl = row.querySelector("[data-fee-item-amount]");
+            const v = Number.parseFloat(amountEl?.value || "");
+            if (!Number.isFinite(v) || v < 0) return sum;
+            return sum + v;
+          }, 0);
+        }
+
+        function refreshDesignFeesUi() {
+          const percent = Number.parseFloat(designFeePercentInput.value);
+          updateFeeZoneHighlight(percent);
+
+          const base = Number.isFinite(latestRealisticConstructionCostTHB) ? latestRealisticConstructionCostTHB : 0;
+          const fee = Number.isFinite(percent) && percent >= 0 ? Math.round((base * percent) / 100) : 0;
+          designFeeAmountText.textContent = `Design Fee: ${formatBaht(fee)}`;
+
+          const requiresSubmission = requiresSubmissionToggle.checked;
+          submissionFieldsWrap.classList.toggle("hidden", !requiresSubmission);
+
+          const submissionFee = requiresSubmission ? Number.parseFloat(submissionFeeInput.value) : 0;
+          const structFee = requiresSubmission ? Number.parseFloat(structEngFeeInput.value) : 0;
+          const consultantFee = requiresSubmission ? Number.parseFloat(consultantFeesInput.value) : 0;
+          const safeSubmission = Number.isFinite(submissionFee) && submissionFee >= 0 ? submissionFee : 0;
+          const safeStruct = Number.isFinite(structFee) && structFee >= 0 ? structFee : 0;
+          const safeConsultants = Number.isFinite(consultantFee) && consultantFee >= 0 ? consultantFee : 0;
+
+          const additional = getFeeItemsSubtotalTHB();
+          feeItemsSubtotalText.textContent = formatBaht(Math.round(additional));
+
+          summaryDesignFeeText.textContent = formatBaht(fee);
+          summarySubmissionFeeText.textContent = formatBaht(Math.round(safeSubmission));
+          summaryStructEngText.textContent = formatBaht(Math.round(safeStruct));
+          summaryConsultantsText.textContent = formatBaht(Math.round(safeConsultants));
+          summaryAdditionalItemsText.textContent = formatBaht(Math.round(additional));
+
+          const total = fee + safeSubmission + safeStruct + safeConsultants + additional;
+          summaryTotalDesignFeesText.textContent = formatBaht(Math.round(total));
+        }
+
+        function addFeeItemRow({ label = "", amount = "" } = {}) {
+          const row = document.createElement("div");
+          row.setAttribute("data-fee-item-row", "true");
+          row.className = "flex flex-col gap-2 sm:flex-row sm:items-center";
+          row.innerHTML = `
+            <input
+              data-fee-item-label
+              type="text"
+              class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+              placeholder="Item label"
+              value="${String(label).replaceAll('"', "&quot;")}"
+            />
+            <div class="flex items-center gap-2">
+              <input
+                data-fee-item-amount
+                type="number"
+                min="0"
+                step="100"
+                inputmode="numeric"
+                class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52"
+                placeholder="0"
+                value="${String(amount).replaceAll('"', "&quot;")}"
+              />
+              <span class="text-sm text-black/55">THB</span>
+              <button
+                type="button"
+                data-fee-item-remove
+                class="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-white text-lg leading-none text-black/70 transition hover:border-black/30"
+                aria-label="Remove item"
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          `;
+
+          const amountEl = row.querySelector("[data-fee-item-amount]");
+          const removeBtn = row.querySelector("[data-fee-item-remove]");
+          amountEl.addEventListener("input", refreshDesignFeesUi);
+          removeBtn.addEventListener("click", function () {
+            row.remove();
+            refreshDesignFeesUi();
+          });
+
+          feeItemsList.appendChild(row);
+          refreshDesignFeesUi();
+        }
+
+        function refreshTimelineUi() {
+          const areaSqmForTimeline = Number.parseFloat(scopeArchitectureArea.value) || getProjectAreaSqm();
+          const projectType = projectTypeSelect.value || "Other";
+          const suggestion =
+            window.ARCHCALC_DATA?.suggestTimelineMonths?.({ areaSqm: areaSqmForTimeline, projectType }) || null;
+
+          if (!suggestion) {
+            timelineHintText.textContent = "Suggested: —";
+            timelineWarningText.classList.add("hidden");
+            return;
+          }
+
+          timelineHintText.textContent = `Suggested: ${suggestion.suggested} months (minimum ${suggestion.minimum})`;
+          timelineMinimumText.textContent = String(suggestion.minimum);
+
+          const entered = Number.parseInt(timelineMonthsInput.value, 10);
+          if (!Number.isFinite(entered)) timelineMonthsInput.value = String(suggestion.suggested);
+          const enteredSafe = Number.isFinite(entered) ? entered : suggestion.suggested;
+
+          const isBelowMin = enteredSafe < suggestion.minimum;
+          timelineWarningText.classList.toggle("hidden", !isBelowMin);
+        }
+
+        function hydrateStepTwoFromStepOne() {
+          const areaSqm = getProjectAreaSqm();
+          scopeArchitectureArea.value = areaSqm > 0 ? areaSqm.toFixed(2) : "";
+          updateScopeUi();
+          refreshMarketRateUi();
+          refreshCostModeUi();
+          refreshEstimatesUi();
+          refreshTimelineUi();
+        }
+
+        function hydrateStepThreeDefaults() {
+          const suggestedStruct = getSuggestedStructEngFeeTHB();
+          structEngSuggestedText.textContent = suggestedStruct > 0 ? formatBaht(suggestedStruct) : "—";
+
+          if (!Number.isFinite(Number.parseFloat(submissionFeeInput.value))) submissionFeeInput.value = "10000";
+          if (!Number.isFinite(Number.parseFloat(consultantFeesInput.value))) consultantFeesInput.value = "0";
+          if (!Number.isFinite(Number.parseFloat(structEngFeeInput.value)) && suggestedStruct > 0) {
+            structEngFeeInput.value = String(suggestedStruct);
+          }
+          refreshDesignFeesUi();
+        }
 
         function showStepOne() {
           heroSection.classList.add("-translate-x-10", "opacity-0", "pointer-events-none");
@@ -414,6 +1240,14 @@
             label.classList.remove("text-black", "text-black/45");
             label.classList.add(stepNumber <= currentStep ? "text-black" : "text-black/45");
           });
+
+          stepPanels.forEach((panel) => {
+            const panelStep = Number.parseInt(panel.getAttribute("data-step-panel") || "0", 10);
+            panel.classList.toggle("hidden", panelStep !== currentStep);
+          });
+
+          if (currentStep === 2) hydrateStepTwoFromStepOne();
+          if (currentStep === 3) hydrateStepThreeDefaults();
         }
 
         function goToNextStep() {
@@ -444,10 +1278,87 @@
           event.currentTarget.dataset.previousUnit = nextUnit;
         });
 
+        scopeInteriorToggle.addEventListener("change", function () {
+          updateScopeUi();
+          refreshEstimatesUi();
+        });
+        scopeArchitectureToggle.addEventListener("change", function () {
+          updateScopeUi();
+          refreshEstimatesUi();
+          refreshTimelineUi();
+        });
+        scopeLandscapeToggle.addEventListener("change", function () {
+          updateScopeUi();
+          refreshEstimatesUi();
+        });
+        scopeDemoToggle.addEventListener("change", function () {
+          updateScopeUi();
+          refreshEstimatesUi();
+        });
+        [scopeArchitectureArea, scopeInteriorArea, scopeLandscapeArea, scopeDemoArea].forEach((el) => {
+          el.addEventListener("input", function () {
+            refreshEstimatesUi();
+            refreshTimelineUi();
+          });
+        });
+
+        costModeMarket.addEventListener("change", function () {
+          refreshCostModeUi();
+          refreshEstimatesUi();
+        });
+        costModeOwn.addEventListener("change", function () {
+          refreshCostModeUi();
+          refreshEstimatesUi();
+        });
+        costPerSqmInput.addEventListener("input", function () {
+          refreshEstimatesUi();
+        });
+
+        [projectTypeSelect, structureTypeSelect, buildingFormSelect, siteLocationSelect].forEach((el) => {
+          el.addEventListener("change", function () {
+            if (currentStep === 2) {
+              refreshMarketRateUi();
+              refreshEstimatesUi();
+              refreshTimelineUi();
+            }
+          });
+        });
+        areaInput.addEventListener("input", function () {
+          if (currentStep === 2) hydrateStepTwoFromStepOne();
+        });
+        areaUnitSelect.addEventListener("change", function () {
+          if (currentStep === 2) hydrateStepTwoFromStepOne();
+        });
+
+        timelineMonthsInput.addEventListener("input", function () {
+          refreshTimelineUi();
+        });
+
+        designFeePercentInput.addEventListener("input", refreshDesignFeesUi);
+        requiresSubmissionToggle.addEventListener("change", function () {
+          if (requiresSubmissionToggle.checked) {
+            hydrateStepThreeDefaults();
+          } else {
+            refreshDesignFeesUi();
+          }
+        });
+        [submissionFeeInput, structEngFeeInput, consultantFeesInput].forEach((el) => {
+          el.addEventListener("input", refreshDesignFeesUi);
+        });
+        addFeeItemBtn.addEventListener("click", function () {
+          addFeeItemRow();
+        });
+
+        (function setScopeDefaultsUnchecked() {
+          scopeArchitectureToggle.checked = false;
+          scopeInteriorToggle.checked = false;
+          scopeLandscapeToggle.checked = false;
+          scopeDemoToggle.checked = false;
+          updateScopeUi();
+        })();
+
         updateProgressUi();
       })();
-    </script>
-    <script src="data.js"></script>
-    <script src="calculator.js"></script>
+    -->
   </body>
 </html>
