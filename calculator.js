@@ -19,12 +19,19 @@
     {
       title: "Design & Fees",
       description: "Professional fees and authority requirements."
-    },
-    {
-      title: "Results",
-      description: "Results coming next — all totals will appear here."
     }
   ];
+
+  /** Cached for updateLiveDashboard (toggle-only updates avoid reparsing form). */
+  let lastDashboardTotals = {
+    scope: 0,
+    ops: 0,
+    design: 0,
+    grand: 0,
+    firstBudget: 0
+  };
+
+  let liveBudgetChart = null;
 
   const nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
   const fmtBaht = (n) => `฿ ${nf0.format(Math.round(Number.isFinite(n) ? n : 0))}`;
@@ -90,7 +97,7 @@
     const stepPanels = getStepPanels();
 
     const fillPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
-    if (progressFill) progressFill.style.width = `${fillPercent}%`;
+    if (progressFill) progressFill.style.height = `${fillPercent}%`;
 
     if (stepCounterText) stepCounterText.textContent = `Step ${currentStep} of ${totalSteps}`;
     if (stepTitleText) stepTitleText.textContent = STEP_META[currentStep - 1].title;
@@ -99,6 +106,7 @@
     stepDots.forEach((dot, idx) => {
       const stepNumber = idx + 1;
       dot.classList.remove(
+        "archcalc-nav-step-active",
         "bg-black",
         "text-white",
         "border-black",
@@ -106,14 +114,17 @@
         "text-black/45",
         "border-black/30"
       );
-      if (stepNumber <= currentStep) dot.classList.add("bg-black", "text-white", "border-black");
-      else dot.classList.add("bg-white", "text-black/45", "border-black/30");
+      if (stepNumber === currentStep) {
+        dot.classList.add("archcalc-nav-step-active", "bg-black", "text-white", "border-black");
+      } else {
+        dot.classList.add("bg-white", "text-black/45", "border-black/30");
+      }
     });
 
     stepLabels.forEach((label, idx) => {
       const stepNumber = idx + 1;
       label.classList.remove("text-black", "text-black/45");
-      label.classList.add(stepNumber <= currentStep ? "text-black" : "text-black/45");
+      label.classList.add(stepNumber === currentStep ? "text-black" : "text-black/45");
     });
 
     stepPanels.forEach((panel) => {
@@ -218,12 +229,15 @@
     }
   }
 
-  function getOperationsConfig(projectType) {
+  function getOperationsConfig(projectType, options) {
+    const skipDom = options && options.skipDom;
     const showKitchen = ["Restaurant", "Cafe"].includes(projectType);
     const showPOS = ["Retail", "Restaurant", "Cafe", "Office"].includes(projectType);
 
-    setHidden("ops_kitchen_block", !showKitchen);
-    setHidden("ops_pos_block", !showPOS);
+    if (!skipDom) {
+      setHidden("ops_kitchen_block", !showKitchen);
+      setHidden("ops_pos_block", !showPOS);
+    }
 
     return [
       { id: "Furniture & Décor", enabled: "ops_furniture_enabled", fields: "ops_furniture_fields", amount: "ops_furniture_amount" },
@@ -397,6 +411,223 @@
     return amount;
   }
 
+  function selectOptionText(selectId) {
+    const sel = qs(selectId);
+    if (!sel) return "—";
+    const opt = sel.selectedOptions[0];
+    if (!opt || opt.disabled) return "—";
+    const t = opt.textContent.trim();
+    return t || "—";
+  }
+
+  function renderResultsInputSummary(projectType, designTotals) {
+    const root = qs("resultsInputsSummaryRoot");
+    if (!root) return;
+
+    root.replaceChildren();
+    const data = window.ARCHCALC_DATA;
+
+    function addSection(titleText) {
+      const sec = document.createElement("div");
+      sec.className = "archcalc-results-summary-section";
+      const h = document.createElement("h4");
+      h.className = "archcalc-results-summary-title";
+      h.textContent = titleText;
+      sec.appendChild(h);
+      const ul = document.createElement("ul");
+      ul.className = "archcalc-results-summary-list";
+      sec.appendChild(ul);
+      root.appendChild(sec);
+      return ul;
+    }
+
+    function addLine(ul, label, value) {
+      const li = document.createElement("li");
+      li.className = "archcalc-results-summary-row";
+      const lb = document.createElement("span");
+      lb.className = "archcalc-results-summary-label";
+      lb.textContent = label;
+      const val = document.createElement("span");
+      val.className = "archcalc-results-summary-value";
+      val.textContent = value;
+      li.appendChild(lb);
+      li.appendChild(val);
+      ul.appendChild(li);
+    }
+
+    const ul1 = addSection(STEP_META[0].title);
+    const nameRaw = (qs("projectNameInput")?.value || "").trim();
+    addLine(ul1, "Project name", nameRaw || "Untitled project");
+    addLine(ul1, "Project type", selectOptionText("projectType"));
+    const areaRaw = toNum(qs("projectAreaInput")?.value);
+    const unitLabel = qs("areaUnitSelect")?.selectedOptions[0]?.textContent?.trim() || "sqm";
+    addLine(ul1, "Project area", `${nf0.format(areaRaw)} ${unitLabel}`);
+    addLine(ul1, "Structure type", selectOptionText("structureType"));
+    addLine(ul1, "Building form", selectOptionText("buildingForm"));
+    addLine(ul1, "Site location", selectOptionText("siteLocation"));
+    addLine(ul1, "Currency", qs("currencySelect")?.value || "THB");
+    addLine(ul1, "Client's first budget", fmtBaht(toNum(qs("clientBudgetInput")?.value)));
+
+    const ul2 = addSection(STEP_META[1].title);
+    getScopeConfig().forEach((s) => {
+      const scopeLabel = data?.SCOPE_LABELS?.[s.id] || s.id;
+      const enabled = qs(s.enabled)?.checked;
+      if (!enabled) {
+        addLine(ul2, scopeLabel, "Not included");
+        return;
+      }
+      const area = toNum(qs(s.area)?.value);
+      const rate = toNum(qs(s.rate)?.value);
+      const sub = area * rate;
+      const useDefault = qs(s.modeDefault)?.checked;
+      const modeText = useDefault ? "Default rate" : "Custom rate";
+      addLine(
+        ul2,
+        scopeLabel,
+        `Included — ${nf0.format(area)} sqm — ${modeText} — ${nf0.format(rate)} THB/sqm — subtotal ${fmtBaht(sub)}`
+      );
+    });
+
+    const ul3 = addSection(STEP_META[2].title);
+    const opsCfg = getOperationsConfig(projectType, { skipDom: true });
+    opsCfg.forEach((c) => {
+      const on = qs(c.enabled)?.checked;
+      const amt = toNum(qs(c.amount)?.value);
+      addLine(ul3, c.id, on ? fmtBaht(amt) : "Not included");
+    });
+    const customList = qs("opsCustomList");
+    if (customList) {
+      Array.from(customList.querySelectorAll("[data-ops-item-row]")).forEach((row) => {
+        const labelEl = row.querySelector("[data-ops-item-label]");
+        const amtEl = row.querySelector("[data-ops-item-amount]");
+        const label = (labelEl && labelEl.value.trim()) || "Custom item";
+        const amt = toNum(amtEl && amtEl.value);
+        addLine(ul3, label, fmtBaht(amt));
+      });
+    }
+
+    const ul4 = addSection(STEP_META[3].title);
+    const pct = toNum(qs("designFeePercentInput")?.value);
+    addLine(ul4, "Design fee", `${pct}% of construction — ${fmtBaht(designTotals.designFee)}`);
+    const requires = !!qs("requiresSubmissionToggle")?.checked;
+    addLine(ul4, "Authority submission", requires ? "Yes" : "No");
+    if (requires) {
+      addLine(ul4, "Submission fee", fmtBaht(toNum(qs("submissionFeeInput")?.value)));
+      addLine(ul4, "Structural engineering", fmtBaht(toNum(qs("structEngFeeInput")?.value)));
+      addLine(ul4, "Other consultants", fmtBaht(toNum(qs("consultantFeesInput")?.value)));
+    }
+    const feeList = qs("feeItemsList");
+    let extraCount = 0;
+    if (feeList) {
+      Array.from(feeList.querySelectorAll("[data-fee-item-row]")).forEach((row) => {
+        const labelEl = row.querySelector("[data-fee-item-label]");
+        const amtEl = row.querySelector("[data-fee-item-amount]");
+        const label = (labelEl && labelEl.value.trim()) || "Additional item";
+        const amt = toNum(amtEl && amtEl.value);
+        extraCount += 1;
+        addLine(ul4, label, fmtBaht(amt));
+      });
+    }
+    if (extraCount === 0) addLine(ul4, "Additional fee items", "None");
+    addLine(ul4, "Total design & fees", fmtBaht(designTotals.totalDesignFees));
+  }
+
+  function initLiveBudgetChart() {
+    const canvas = qs("liveBudgetPieCanvas");
+    if (!canvas || typeof window.Chart === "undefined" || liveBudgetChart) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    liveBudgetChart = new window.Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Construction", "Operations", "Design & fees"],
+        datasets: [
+          {
+            data: [1, 1, 1],
+            backgroundColor: ["#8B7355", "#C4A77D", "#6B8E6B"],
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.raw || 0;
+                return `${ctx.label}: ${fmtBaht(v)}`;
+              }
+            }
+          }
+        },
+        cutout: "58%"
+      }
+    });
+  }
+
+  function updateLiveDashboard() {
+    const c = lastDashboardTotals.scope;
+    const o = lastDashboardTotals.ops;
+    const d = lastDashboardTotals.design;
+    const firstBudget = lastDashboardTotals.firstBudget;
+
+    const nameEl = qs("liveProjectNameDisplay");
+    if (nameEl) {
+      const raw = (qs("projectNameInput")?.value || "").trim();
+      nameEl.textContent = raw || "Untitled project";
+    }
+
+    const areaEl = qs("liveProjectAreaDisplay");
+    if (areaEl) {
+      const areaRaw = toNum(qs("projectAreaInput")?.value);
+      const unitLabel = qs("areaUnitSelect")?.selectedOptions[0]?.textContent?.trim() || "sqm";
+      areaEl.textContent = areaRaw > 0 ? `${nf0.format(areaRaw)} ${unitLabel}` : "—";
+    }
+
+    const incScope = qs("includeScopeInLive")?.checked !== false;
+    const incOps = qs("includeOpsInLive")?.checked !== false;
+    const incDesign = qs("includeDesignInLive")?.checked !== false;
+
+    const adjusted = (incScope ? c : 0) + (incOps ? o : 0) + (incDesign ? d : 0);
+    setText("liveAdjustedTotalText", fmtBaht(adjusted));
+
+    const hint = qs("liveToggleHint");
+    if (hint) hint.classList.toggle("hidden", incScope && incOps && incDesign);
+
+    const sC = incScope ? c : 0;
+    const sO = incOps ? o : 0;
+    const sD = incDesign ? d : 0;
+    const sliceSum = sC + sO + sD;
+
+    if (liveBudgetChart) {
+      const palette = ["#8B7355", "#C4A77D", "#6B8E6B"];
+      if (sliceSum <= 0) {
+        liveBudgetChart.data.datasets[0].data = [1, 1, 1];
+        liveBudgetChart.data.datasets[0].backgroundColor = palette.map((hex) => `${hex}40`);
+      } else {
+        liveBudgetChart.data.datasets[0].data = [sC, sO, sD];
+        liveBudgetChart.data.datasets[0].backgroundColor = palette;
+      }
+      liveBudgetChart.update();
+    }
+
+    const gapSel = adjusted - firstBudget;
+    const gapSelEl = qs("liveSelectedVarianceText");
+    if (gapSelEl) {
+      gapSelEl.classList.remove("text-red-600", "text-green-600");
+      if (gapSel > 0) {
+        gapSelEl.classList.add("text-red-600");
+        gapSelEl.textContent = `Over budget by ${fmtBaht(gapSel)}`;
+      } else {
+        gapSelEl.classList.add("text-green-600");
+        gapSelEl.textContent = `Within budget by ${fmtBaht(Math.abs(gapSel))}`;
+      }
+    }
+  }
+
   let currentStep = 1;
 
   function showForm() {
@@ -435,7 +666,6 @@
     ensureDesignFeeDefaults();
     const designTotals = readDesignFeesTotals(scopeTotals.total);
 
-    // Step 5 (results)
     setText("resultsScopeTotalText", fmtBaht(scopeTotals.total));
     setText("resultsOpsTotalText", fmtBaht(opsTotals.total));
     setText("resultsDesignFeesTotalText", fmtBaht(designTotals.totalDesignFees));
@@ -445,6 +675,14 @@
 
     const firstBudget = readFirstBudgetTHB();
     setText("resultsFirstBudgetText", fmtBaht(firstBudget));
+
+    lastDashboardTotals = {
+      scope: scopeTotals.total,
+      ops: opsTotals.total,
+      design: designTotals.totalDesignFees,
+      grand,
+      firstBudget
+    };
 
     const gap = grand - firstBudget;
     const gapEl = qs("resultsGapText");
@@ -458,6 +696,9 @@
         gapEl.textContent = `Within budget by ${fmtBaht(Math.abs(gap))}`;
       }
     }
+
+    renderResultsInputSummary(projectType, designTotals);
+    updateLiveDashboard();
   }
 
   function wireEvents() {
@@ -485,6 +726,22 @@
       }
     });
 
+    getStepDots().forEach((dot) => {
+      dot.addEventListener("click", () => {
+        const n = Number.parseInt(dot.getAttribute("data-step-dot") || "0", 10);
+        if (!Number.isFinite(n) || n < 1 || n > STEP_META.length) return;
+        currentStep = n;
+        updateProgressUi(currentStep);
+        calculateAll();
+      });
+    });
+
+    ["includeScopeInLive", "includeOpsInLive", "includeDesignInLive"].forEach((id) => {
+      qs(id)?.addEventListener("change", updateLiveDashboard);
+    });
+
+    qs("projectNameInput")?.addEventListener("input", updateLiveDashboard);
+
     // unit convert
     const unit = qs("areaUnitSelect");
     if (unit) {
@@ -499,8 +756,10 @@
     }
 
     // Step 1 inputs that affect defaults
-    ["projectType", "projectAreaInput", "siteLocation"].forEach((id) => qs(id)?.addEventListener("input", calculateAll));
-    ["projectType", "siteLocation"].forEach((id) => qs(id)?.addEventListener("change", calculateAll));
+    ["projectType", "projectAreaInput", "siteLocation", "clientBudgetInput"].forEach((id) =>
+      qs(id)?.addEventListener("input", calculateAll)
+    );
+    ["projectType", "siteLocation", "currencySelect"].forEach((id) => qs(id)?.addEventListener("change", calculateAll));
 
     // scopes
     getScopeConfig().forEach((s) => {
@@ -541,6 +800,7 @@
   }
 
   function init() {
+    initLiveBudgetChart();
     updateProgressUi(currentStep);
     wireEvents();
     calculateAll();
