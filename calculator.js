@@ -28,18 +28,138 @@
     ops: 0,
     design: 0,
     grand: 0,
-    firstBudget: 0
+    firstBudget: 0,
+    breakdown: {
+      scope: [],
+      ops: [],
+      design: []
+    }
   };
 
   let liveBudgetChart = null;
+  /** Last non-empty chart slice model (for section highlight after updates). */
+  let lastChartSlices = [];
+  /** @type {null | "scope" | "ops" | "design"} */
+  let highlightedSection = null;
+  /** User palette (donut slices cycle in order). */
+  const DONUT_PALETTE = [
+    "#D3C2CD",
+    "#849E15",
+    "#92A2A6",
+    "#B28622",
+    "#F8CABA",
+    "#D8560E",
+    "#EFCE7B",
+    "#E1903E",
+    "#6777B6",
+    "#2B2B23",
+    "#D17089",
+    "#CBD183"
+  ];
 
   const nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  const nfArea = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
   const fmtBaht = (n) => `฿ ${nf0.format(Math.round(Number.isFinite(n) ? n : 0))}`;
 
   const toNum = (v) => {
     const n = Number.parseFloat(v);
     return Number.isFinite(n) ? n : 0;
   };
+
+  function stripCommas(s) {
+    return String(s ?? "").replace(/,/g, "");
+  }
+
+  function parseFormattedNumber(s) {
+    const t = stripCommas(String(s ?? "").trim());
+    if (t === "" || t === ".") return NaN;
+    const n = Number.parseFloat(t);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function formatDisplayForKind(kind, n) {
+    if (!Number.isFinite(n)) return "";
+    if (kind === "area") return nfArea.format(n);
+    if (kind === "money") return nf0.format(Math.round(n));
+    if (kind === "percent") {
+      const r = Math.round(n * 100) / 100;
+      if (Math.abs(r - Math.round(r)) < 1e-9) return String(Math.round(r));
+      return String(r);
+    }
+    return String(n);
+  }
+
+  function setFormattedValue(el, n, kind) {
+    if (!el || !kind) return;
+    if (!Number.isFinite(n)) return;
+    el.value = formatDisplayForKind(kind, n);
+  }
+
+  function readFormattedInput(el) {
+    if (!el) return 0;
+    const kind = el.getAttribute("data-archcalc-input");
+    const raw = stripCommas(el.value);
+    if (kind) {
+      if (raw.trim() === "") return 0;
+      const n = parseFormattedNumber(el.value);
+      return Number.isFinite(n) ? n : 0;
+    }
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function readId(id) {
+    return readFormattedInput(qs(id));
+  }
+
+  function wireArchcalcInputDelegation() {
+    const form = qs("multiStepForm");
+    if (!form) return;
+    form.addEventListener(
+      "focusin",
+      (e) => {
+        const el = e.target;
+        if (!(el instanceof HTMLInputElement)) return;
+        if (!el.hasAttribute("data-archcalc-input")) return;
+        const n = parseFormattedNumber(el.value);
+        if (Number.isFinite(n) && n === 0) el.select();
+      },
+      true
+    );
+    form.addEventListener(
+      "input",
+      (e) => {
+        const el = e.target;
+        if (!(el instanceof HTMLInputElement)) return;
+        const kind = el.getAttribute("data-archcalc-input");
+        if (!kind || kind === "percent") return;
+        let raw = stripCommas(el.value);
+        if (kind === "money") raw = raw.replace(/[^\d]/g, "");
+        else raw = raw.replace(/[^\d.]/g, "");
+        const dot = raw.indexOf(".");
+        if (dot !== -1) raw = raw.slice(0, dot + 1) + raw.slice(dot + 1).replace(/\./g, "");
+        if ((kind === "area" || kind === "money") && /^0+\d/.test(raw) && !raw.includes(".")) {
+          raw = raw.replace(/^0+/, "") || "0";
+        }
+        if (raw !== stripCommas(el.value)) el.value = raw;
+      },
+      true
+    );
+    form.addEventListener(
+      "focusout",
+      (e) => {
+        const el = e.target;
+        if (!(el instanceof HTMLInputElement)) return;
+        const kind = el.getAttribute("data-archcalc-input");
+        if (!kind) return;
+        const t = el.value.trim();
+        if (t === "") return;
+        const n = parseFormattedNumber(el.value);
+        if (Number.isFinite(n)) el.value = formatDisplayForKind(kind, n);
+      },
+      true
+    );
+  }
 
   function qs(id) {
     return document.getElementById(id);
@@ -56,9 +176,8 @@
   }
 
   function getProjectAreaSqm() {
-    const areaInput = qs("projectAreaInput");
     const unitSelect = qs("areaUnitSelect");
-    const raw = toNum(areaInput?.value);
+    const raw = readId("projectAreaInput");
     const unit = unitSelect?.value || "sqm";
     if (raw <= 0) return 0;
     return unit === "sqft" ? raw / SQFT_PER_SQM : raw;
@@ -66,12 +185,12 @@
 
   function convertAreaValue(previousUnit, nextUnit) {
     const areaInput = qs("projectAreaInput");
-    const raw = Number.parseFloat(areaInput?.value || "");
-    if (!Number.isFinite(raw)) return;
+    const raw = readId("projectAreaInput");
+    if (!Number.isFinite(raw) || raw <= 0) return;
     let converted = raw;
     if (previousUnit === "sqm" && nextUnit === "sqft") converted = raw * SQFT_PER_SQM;
     if (previousUnit === "sqft" && nextUnit === "sqm") converted = raw / SQFT_PER_SQM;
-    areaInput.value = converted.toFixed(2);
+    if (areaInput) setFormattedValue(areaInput, converted, "area");
   }
 
   function getStepPanels() {
@@ -96,7 +215,8 @@
     const stepLabels = getStepLabels();
     const stepPanels = getStepPanels();
 
-    const fillPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    /* Each step adds 25% (4 steps → 25 / 50 / 75 / 100), fill grows top → bottom in CSS. */
+    const fillPercent = (currentStep / totalSteps) * 100;
     if (progressFill) progressFill.style.height = `${fillPercent}%`;
 
     if (stepCounterText) stepCounterText.textContent = `Step ${currentStep} of ${totalSteps}`;
@@ -123,8 +243,8 @@
 
     stepLabels.forEach((label, idx) => {
       const stepNumber = idx + 1;
-      label.classList.remove("text-black", "text-black/45");
-      label.classList.add(stepNumber === currentStep ? "text-black" : "text-black/45");
+      label.classList.remove("text-black", "text-black/45", "text-white");
+      label.classList.add(stepNumber === currentStep ? "text-white" : "text-black/45");
     });
 
     stepPanels.forEach((panel) => {
@@ -165,8 +285,8 @@
       }
 
       if (enabled?.checked) {
-        if (areaEl && (!areaEl.value || toNum(areaEl.value) === 0) && baseArea > 0) {
-          areaEl.value = baseArea.toFixed(2);
+        if (areaEl && readFormattedInput(areaEl) === 0 && baseArea > 0) {
+          setFormattedValue(areaEl, baseArea, "area");
         }
         if (modeDefault && modeOwn && !modeDefault.checked && !modeOwn.checked) {
           modeDefault.checked = true;
@@ -177,16 +297,16 @@
           if (useDefault) {
             rateEl.readOnly = true;
             rateEl.classList.add("bg-black/5");
-            rateEl.value = String(defaultRate);
+            setFormattedValue(rateEl, defaultRate, "money");
           } else {
             rateEl.readOnly = false;
             rateEl.classList.remove("bg-black/5");
-            if (!rateEl.value) rateEl.value = String(defaultRate);
+            if (!stripCommas(rateEl.value).trim()) setFormattedValue(rateEl, defaultRate, "money");
           }
         }
       } else {
-        if (areaEl) areaEl.value = areaEl.value || "0";
-        if (rateEl) rateEl.value = rateEl.value || "0";
+        if (areaEl) setFormattedValue(areaEl, readFormattedInput(areaEl), "area");
+        if (rateEl) setFormattedValue(rateEl, readFormattedInput(rateEl), "money");
       }
     });
   }
@@ -198,8 +318,8 @@
 
     getScopeConfig().forEach((s) => {
       const enabled = qs(s.enabled)?.checked;
-      const area = toNum(qs(s.area)?.value);
-      const rate = toNum(qs(s.rate)?.value);
+      const area = readId(s.area);
+      const rate = readId(s.rate);
       const sub = enabled ? area * rate : 0;
       total += sub;
       setText(s.subtotal, fmtBaht(sub));
@@ -257,7 +377,7 @@
       const fields = qs(c.fields);
       const amountEl = qs(c.amount);
       if (fields && enabled) fields.classList.toggle("hidden", !enabled.checked);
-      if (amountEl && !amountEl.value) amountEl.value = "0";
+      if (amountEl && !stripCommas(amountEl.value).trim()) setFormattedValue(amountEl, 0, "money");
     });
   }
 
@@ -267,7 +387,7 @@
     const rows = [];
     cfg.forEach((c) => {
       const enabled = qs(c.enabled)?.checked;
-      const amount = toNum(qs(c.amount)?.value);
+      const amount = readId(c.amount);
       const val = enabled ? amount : 0;
       total += val;
       if (enabled) rows.push({ label: c.id, amount: val });
@@ -279,7 +399,7 @@
       const customRows = Array.from(customList.querySelectorAll("[data-ops-item-row]"));
       customRows.forEach((row) => {
         const label = row.querySelector("[data-ops-item-label]")?.value?.trim() || "Custom item";
-        const amount = toNum(row.querySelector("[data-ops-item-amount]")?.value);
+        const amount = readFormattedInput(row.querySelector("[data-ops-item-amount]"));
         total += amount;
         rows.push({ label, amount });
       });
@@ -297,7 +417,7 @@
     row.innerHTML = `
       <input data-ops-item-label type="text" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black" placeholder="Item label" />
       <div class="flex items-center gap-2">
-        <input data-ops-item-amount type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52" value="0" />
+        <input data-ops-item-amount type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52" value="0" />
         <span class="text-sm text-black/55">THB</span>
         <button type="button" data-ops-item-remove class="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-white text-lg leading-none text-black/70 transition hover:border-black/30" aria-label="Remove item" title="Remove">×</button>
       </div>
@@ -338,7 +458,7 @@
     const list = qs("feeItemsList");
     if (!list) return 0;
     const rows = Array.from(list.querySelectorAll("[data-fee-item-row]"));
-    return rows.reduce((sum, row) => sum + toNum(row.querySelector("[data-fee-item-amount]")?.value), 0);
+    return rows.reduce((sum, row) => sum + readFormattedInput(row.querySelector("[data-fee-item-amount]")), 0);
   }
 
   function addFeeItemRow() {
@@ -350,7 +470,7 @@
     row.innerHTML = `
       <input data-fee-item-label type="text" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black" placeholder="Item label" />
       <div class="flex items-center gap-2">
-        <input data-fee-item-amount type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52" value="0" />
+        <input data-fee-item-amount type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52" value="0" />
         <span class="text-sm text-black/55">THB</span>
         <button type="button" data-fee-item-remove class="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-white text-lg leading-none text-black/70 transition hover:border-black/30" aria-label="Remove item" title="Remove">×</button>
       </div>
@@ -365,7 +485,7 @@
   }
 
   function readDesignFeesTotals(totalConstructionCost) {
-    const percent = toNum(qs("designFeePercentInput")?.value);
+    const percent = readId("designFeePercentInput");
     updateFeeZoneHighlight(percent);
     const designFee = Math.round((percent / 100) * totalConstructionCost);
     setText("designFeeAmountText", `Design Fee: ${fmtBaht(designFee)}`);
@@ -373,9 +493,9 @@
     const requires = !!qs("requiresSubmissionToggle")?.checked;
     setHidden("submissionFieldsWrap", !requires);
 
-    const submission = requires ? toNum(qs("submissionFeeInput")?.value) : 0;
-    const structural = requires ? toNum(qs("structEngFeeInput")?.value) : 0;
-    const consultants = requires ? toNum(qs("consultantFeesInput")?.value) : 0;
+    const submission = requires ? readId("submissionFeeInput") : 0;
+    const structural = requires ? readId("structEngFeeInput") : 0;
+    const consultants = requires ? readId("consultantFeesInput") : 0;
     const additional = getFeeItemsSubtotal();
 
     setText("feeItemsSubtotalText", fmtBaht(additional));
@@ -388,7 +508,22 @@
 
     const total = designFee + submission + structural + consultants + additional;
     setText("summaryTotalDesignFeesText", fmtBaht(total));
-    return { totalDesignFees: total, designFee };
+    const rows = [];
+    if (designFee > 0) rows.push({ label: "Design fee", amount: designFee });
+    if (requires && submission > 0) rows.push({ label: "Submission fee", amount: submission });
+    if (requires && structural > 0) rows.push({ label: "Structural engineering", amount: structural });
+    if (requires && consultants > 0) rows.push({ label: "Other consultants", amount: consultants });
+    const feeList = qs("feeItemsList");
+    if (feeList) {
+      Array.from(feeList.querySelectorAll("[data-fee-item-row]")).forEach((row) => {
+        const labelEl = row.querySelector("[data-fee-item-label]");
+        const amtEl = row.querySelector("[data-fee-item-amount]");
+        const label = (labelEl && labelEl.value.trim()) || "Additional item";
+        const amt = readFormattedInput(amtEl);
+        if (amt > 0) rows.push({ label, amount: amt });
+      });
+    }
+    return { totalDesignFees: total, designFee, rows };
   }
 
   function ensureDesignFeeDefaults() {
@@ -398,13 +533,13 @@
     const suggested = Math.round(getProjectAreaSqm() * 1000);
     setText("structEngSuggestedText", suggested > 0 ? fmtBaht(suggested) : "—");
 
-    if (subFee && !subFee.value) subFee.value = "10000";
-    if (consultants && !consultants.value) consultants.value = "0";
-    if (structFee && !structFee.value && suggested > 0) structFee.value = String(suggested);
+    if (subFee && !stripCommas(subFee.value).trim()) setFormattedValue(subFee, 10000, "money");
+    if (consultants && !stripCommas(consultants.value).trim()) setFormattedValue(consultants, 0, "money");
+    if (structFee && !stripCommas(structFee.value).trim() && suggested > 0) setFormattedValue(structFee, suggested, "money");
   }
 
   function readFirstBudgetTHB() {
-    const amount = toNum(qs("clientBudgetInput")?.value);
+    const amount = readId("clientBudgetInput");
     const currency = qs("currencySelect")?.value || "THB";
     // For now, treat non-THB as 0 (no FX logic requested). Keeps bugs from showing wrong conversions.
     if (currency !== "THB") return 0;
@@ -459,14 +594,14 @@
     const nameRaw = (qs("projectNameInput")?.value || "").trim();
     addLine(ul1, "Project name", nameRaw || "Untitled project");
     addLine(ul1, "Project type", selectOptionText("projectType"));
-    const areaRaw = toNum(qs("projectAreaInput")?.value);
+    const areaRaw = readId("projectAreaInput");
     const unitLabel = qs("areaUnitSelect")?.selectedOptions[0]?.textContent?.trim() || "sqm";
-    addLine(ul1, "Project area", `${nf0.format(areaRaw)} ${unitLabel}`);
+    addLine(ul1, "Project area", `${nfArea.format(areaRaw)} ${unitLabel}`);
     addLine(ul1, "Structure type", selectOptionText("structureType"));
     addLine(ul1, "Building form", selectOptionText("buildingForm"));
     addLine(ul1, "Site location", selectOptionText("siteLocation"));
     addLine(ul1, "Currency", qs("currencySelect")?.value || "THB");
-    addLine(ul1, "Client's first budget", fmtBaht(toNum(qs("clientBudgetInput")?.value)));
+    addLine(ul1, "Client's first budget", fmtBaht(readId("clientBudgetInput")));
 
     const ul2 = addSection(STEP_META[1].title);
     getScopeConfig().forEach((s) => {
@@ -476,8 +611,8 @@
         addLine(ul2, scopeLabel, "Not included");
         return;
       }
-      const area = toNum(qs(s.area)?.value);
-      const rate = toNum(qs(s.rate)?.value);
+      const area = readId(s.area);
+      const rate = readId(s.rate);
       const sub = area * rate;
       const useDefault = qs(s.modeDefault)?.checked;
       const modeText = useDefault ? "Default rate" : "Custom rate";
@@ -492,7 +627,7 @@
     const opsCfg = getOperationsConfig(projectType, { skipDom: true });
     opsCfg.forEach((c) => {
       const on = qs(c.enabled)?.checked;
-      const amt = toNum(qs(c.amount)?.value);
+      const amt = readId(c.amount);
       addLine(ul3, c.id, on ? fmtBaht(amt) : "Not included");
     });
     const customList = qs("opsCustomList");
@@ -501,20 +636,20 @@
         const labelEl = row.querySelector("[data-ops-item-label]");
         const amtEl = row.querySelector("[data-ops-item-amount]");
         const label = (labelEl && labelEl.value.trim()) || "Custom item";
-        const amt = toNum(amtEl && amtEl.value);
+        const amt = readFormattedInput(amtEl);
         addLine(ul3, label, fmtBaht(amt));
       });
     }
 
     const ul4 = addSection(STEP_META[3].title);
-    const pct = toNum(qs("designFeePercentInput")?.value);
+    const pct = readId("designFeePercentInput");
     addLine(ul4, "Design fee", `${pct}% of construction — ${fmtBaht(designTotals.designFee)}`);
     const requires = !!qs("requiresSubmissionToggle")?.checked;
     addLine(ul4, "Authority submission", requires ? "Yes" : "No");
     if (requires) {
-      addLine(ul4, "Submission fee", fmtBaht(toNum(qs("submissionFeeInput")?.value)));
-      addLine(ul4, "Structural engineering", fmtBaht(toNum(qs("structEngFeeInput")?.value)));
-      addLine(ul4, "Other consultants", fmtBaht(toNum(qs("consultantFeesInput")?.value)));
+      addLine(ul4, "Submission fee", fmtBaht(readId("submissionFeeInput")));
+      addLine(ul4, "Structural engineering", fmtBaht(readId("structEngFeeInput")));
+      addLine(ul4, "Other consultants", fmtBaht(readId("consultantFeesInput")));
     }
     const feeList = qs("feeItemsList");
     let extraCount = 0;
@@ -523,7 +658,7 @@
         const labelEl = row.querySelector("[data-fee-item-label]");
         const amtEl = row.querySelector("[data-fee-item-amount]");
         const label = (labelEl && labelEl.value.trim()) || "Additional item";
-        const amt = toNum(amtEl && amtEl.value);
+        const amt = readFormattedInput(amtEl);
         extraCount += 1;
         addLine(ul4, label, fmtBaht(amt));
       });
@@ -540,11 +675,11 @@
     liveBudgetChart = new window.Chart(ctx, {
       type: "doughnut",
       data: {
-        labels: ["Construction", "Operations", "Design & fees"],
+        labels: ["Loading"],
         datasets: [
           {
-            data: [1, 1, 1],
-            backgroundColor: ["#8B7355", "#C4A77D", "#6B8E6B"],
+            data: [1],
+            backgroundColor: ["#D4D4D4"],
             borderWidth: 0
           }
         ]
@@ -568,6 +703,145 @@
     });
   }
 
+  function renderLiveBreakdownList(containerId, rows, emptyText) {
+    const root = qs(containerId);
+    if (!root) return;
+    root.replaceChildren();
+    if (!rows.length) {
+      const li = document.createElement("li");
+      li.className = "archcalc-breakdown-item";
+      const label = document.createElement("span");
+      label.className = "archcalc-breakdown-item-label";
+      label.textContent = emptyText;
+      li.appendChild(label);
+      root.appendChild(li);
+      return;
+    }
+    rows.forEach((row) => {
+      const li = document.createElement("li");
+      li.className = "archcalc-breakdown-item";
+      const label = document.createElement("span");
+      label.className = "archcalc-breakdown-item-label";
+      label.textContent = row.label;
+      const val = document.createElement("span");
+      val.className = "archcalc-breakdown-item-value";
+      val.textContent = fmtBaht(row.amount);
+      li.appendChild(label);
+      li.appendChild(val);
+      root.appendChild(li);
+    });
+  }
+
+  function formatPctOfAdjusted(amount, adjusted) {
+    if (!(adjusted > 0)) return "—";
+    const p = (100 * amount) / adjusted;
+    return `${p.toFixed(1)}%`;
+  }
+
+  function setSummaryPctEl(id, included, bucketTotal, adjusted) {
+    const el = qs(id);
+    if (!el) return;
+    if (!(adjusted > 0)) {
+      el.textContent = "—";
+      return;
+    }
+    if (!included) {
+      el.textContent = "0%";
+      return;
+    }
+    el.textContent = formatPctOfAdjusted(bucketTotal, adjusted);
+  }
+
+  function buildChartSlices(incScope, incOps, incDesign, scopeRows, opsRows, designRows) {
+    const out = [];
+    let idx = 0;
+    const pushSection = (section, rows) => {
+      rows.forEach((row) => {
+        if (row.amount <= 0) return;
+        out.push({
+          label: row.label,
+          amount: row.amount,
+          section,
+          color: DONUT_PALETTE[idx % DONUT_PALETTE.length]
+        });
+        idx += 1;
+      });
+    };
+    if (incScope) pushSection("scope", scopeRows);
+    if (incOps) pushSection("ops", opsRows);
+    if (incDesign) pushSection("design", designRows);
+    return out;
+  }
+
+  function renderPieLegend(chartSlices, adjusted) {
+    const root = qs("liveBudgetPieLegend");
+    if (!root) return;
+    root.replaceChildren();
+    if (!chartSlices.length) {
+      const p = document.createElement("p");
+      p.className = "archcalc-pie-legend-empty";
+      p.textContent =
+        adjusted > 0
+          ? "No segments in chart — enable categories with the checkboxes above."
+          : "Nothing included in live total — turn on at least one category.";
+      root.appendChild(p);
+      return;
+    }
+    chartSlices.forEach((slice) => {
+      const row = document.createElement("div");
+      row.className = "archcalc-pie-legend-row";
+      const sw = document.createElement("span");
+      sw.className = "archcalc-pie-legend-swatch";
+      sw.style.backgroundColor = slice.color;
+      sw.setAttribute("aria-hidden", "true");
+      const main = document.createElement("div");
+      main.className = "archcalc-pie-legend-main";
+      const lab = document.createElement("span");
+      lab.className = "archcalc-pie-legend-label";
+      lab.textContent = slice.label;
+      const meta = document.createElement("div");
+      meta.className = "archcalc-pie-legend-meta";
+      const amt = document.createElement("span");
+      amt.textContent = fmtBaht(slice.amount);
+      const pct = document.createElement("span");
+      pct.className = "archcalc-pie-legend-pct";
+      pct.textContent = formatPctOfAdjusted(slice.amount, adjusted);
+      meta.appendChild(amt);
+      meta.appendChild(pct);
+      main.appendChild(lab);
+      main.appendChild(meta);
+      row.appendChild(sw);
+      row.appendChild(main);
+      root.appendChild(row);
+    });
+  }
+
+  function applyDonutSliceBorders() {
+    if (!liveBudgetChart) return;
+    const ds = liveBudgetChart.data.datasets[0];
+    const slices = lastChartSlices;
+    if (!slices.length) {
+      ds.borderColor = "rgba(0,0,0,0)";
+      ds.borderWidth = 0;
+      return;
+    }
+    ds.borderColor = slices.map((s) =>
+      highlightedSection && s.section === highlightedSection ? "#111" : "rgba(0,0,0,0)"
+    );
+    ds.borderWidth = slices.map((s) =>
+      highlightedSection && s.section === highlightedSection ? 3 : 0
+    );
+  }
+
+  function syncSummaryRowHighlightUI() {
+    document.querySelectorAll(".archcalc-live-summary-row[data-live-section]").forEach((btn) => {
+      const sec = btn.getAttribute("data-live-section");
+      const on = highlightedSection === sec;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.classList.toggle("archcalc-live-summary-row--active", on);
+    });
+  }
+
   function updateLiveDashboard() {
     const c = lastDashboardTotals.scope;
     const o = lastDashboardTotals.ops;
@@ -582,37 +856,72 @@
 
     const areaEl = qs("liveProjectAreaDisplay");
     if (areaEl) {
-      const areaRaw = toNum(qs("projectAreaInput")?.value);
+      const areaRaw = readId("projectAreaInput");
       const unitLabel = qs("areaUnitSelect")?.selectedOptions[0]?.textContent?.trim() || "sqm";
-      areaEl.textContent = areaRaw > 0 ? `${nf0.format(areaRaw)} ${unitLabel}` : "—";
+      areaEl.textContent = areaRaw > 0 ? `${nfArea.format(areaRaw)} ${unitLabel}` : "—";
     }
 
     const incScope = qs("includeScopeInLive")?.checked !== false;
     const incOps = qs("includeOpsInLive")?.checked !== false;
     const incDesign = qs("includeDesignInLive")?.checked !== false;
+    const scopeRows = lastDashboardTotals.breakdown.scope || [];
+    const opsRows = lastDashboardTotals.breakdown.ops || [];
+    const designRows = lastDashboardTotals.breakdown.design || [];
 
     const adjusted = (incScope ? c : 0) + (incOps ? o : 0) + (incDesign ? d : 0);
     setText("liveAdjustedTotalText", fmtBaht(adjusted));
 
+    setSummaryPctEl("liveScopePctText", incScope, c, adjusted);
+    setSummaryPctEl("liveOpsPctText", incOps, o, adjusted);
+    setSummaryPctEl("liveDesignPctText", incDesign, d, adjusted);
+
+    const ap = adjusted > 0 ? 100 / adjusted : 0;
+    ["liveScopeBarFill", "liveOpsBarFill", "liveDesignBarFill"].forEach((id, idx) => {
+      const el = qs(id);
+      if (!el) return;
+      const part = idx === 0 ? c : idx === 1 ? o : d;
+      const inc = idx === 0 ? incScope : idx === 1 ? incOps : incDesign;
+      const w = adjusted > 0 && inc ? part * ap : 0;
+      el.style.width = `${Math.min(100, Math.max(0, w))}%`;
+    });
+
     const hint = qs("liveToggleHint");
     if (hint) hint.classList.toggle("hidden", incScope && incOps && incDesign);
 
-    const sC = incScope ? c : 0;
-    const sO = incOps ? o : 0;
-    const sD = incDesign ? d : 0;
-    const sliceSum = sC + sO + sD;
+    renderLiveBreakdownList("liveScopeBreakdown", incScope ? scopeRows : [], incScope ? "No scopes selected." : "Excluded by toggle.");
+    renderLiveBreakdownList("liveOpsBreakdown", incOps ? opsRows : [], incOps ? "No operations selected." : "Excluded by toggle.");
+    renderLiveBreakdownList(
+      "liveDesignBreakdown",
+      incDesign ? designRows : [],
+      incDesign ? "No design fee items yet." : "Excluded by toggle."
+    );
+
+    const chartSlices = buildChartSlices(incScope, incOps, incDesign, scopeRows, opsRows, designRows);
+    lastChartSlices = chartSlices;
+
+    if (highlightedSection && !chartSlices.some((s) => s.section === highlightedSection)) {
+      highlightedSection = null;
+    }
+
+    renderPieLegend(chartSlices, adjusted);
 
     if (liveBudgetChart) {
-      const palette = ["#8B7355", "#C4A77D", "#6B8E6B"];
-      if (sliceSum <= 0) {
-        liveBudgetChart.data.datasets[0].data = [1, 1, 1];
-        liveBudgetChart.data.datasets[0].backgroundColor = palette.map((hex) => `${hex}40`);
+      if (!chartSlices.length) {
+        liveBudgetChart.data.labels = ["No selected costs"];
+        liveBudgetChart.data.datasets[0].data = [1];
+        liveBudgetChart.data.datasets[0].backgroundColor = ["#D4D4D4"];
+        liveBudgetChart.data.datasets[0].borderColor = "rgba(0,0,0,0)";
+        liveBudgetChart.data.datasets[0].borderWidth = 0;
       } else {
-        liveBudgetChart.data.datasets[0].data = [sC, sO, sD];
-        liveBudgetChart.data.datasets[0].backgroundColor = palette;
+        liveBudgetChart.data.labels = chartSlices.map((slice) => slice.label);
+        liveBudgetChart.data.datasets[0].data = chartSlices.map((slice) => slice.amount);
+        liveBudgetChart.data.datasets[0].backgroundColor = chartSlices.map((slice) => slice.color);
+        applyDonutSliceBorders();
       }
       liveBudgetChart.update();
     }
+
+    syncSummaryRowHighlightUI();
 
     const gapSel = adjusted - firstBudget;
     const gapSelEl = qs("liveSelectedVarianceText");
@@ -681,7 +990,12 @@
       ops: opsTotals.total,
       design: designTotals.totalDesignFees,
       grand,
-      firstBudget
+      firstBudget,
+      breakdown: {
+        scope: scopeTotals.rows,
+        ops: opsTotals.rows,
+        design: designTotals.rows
+      }
     };
 
     const gap = grand - firstBudget;
@@ -738,6 +1052,18 @@
 
     ["includeScopeInLive", "includeOpsInLive", "includeDesignInLive"].forEach((id) => {
       qs(id)?.addEventListener("change", updateLiveDashboard);
+    });
+
+    qs("liveBudgetSummaryRows")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-live-section]");
+      if (!btn) return;
+      const sec = btn.getAttribute("data-live-section");
+      if (!sec || !lastChartSlices.some((s) => s.section === sec)) return;
+      if (highlightedSection === sec) highlightedSection = null;
+      else highlightedSection = sec;
+      applyDonutSliceBorders();
+      liveBudgetChart?.update("none");
+      syncSummaryRowHighlightUI();
     });
 
     qs("projectNameInput")?.addEventListener("input", updateLiveDashboard);
@@ -801,6 +1127,7 @@
 
   function init() {
     initLiveBudgetChart();
+    wireArchcalcInputDelegation();
     updateProgressUi(currentStep);
     wireEvents();
     calculateAll();

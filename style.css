@@ -62,13 +62,14 @@
   color: #6b7280;
 }
 
-/* Split workspace (post-hero). Pie chart earth tones: #8B7355, #C4A77D, #6B8E6B (see calculator.js Chart init). */
+/* Split workspace (post-hero). Donut: DONUT_PALETTE in calculator.js (user palette). */
 
 #stepOneSection > .archcalc-workspace {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr) 400px;
+  /* Right column ~10% narrower than prior 0.85fr / 1.15fr split; freed width to center. */
+  grid-template-columns: 248px minmax(0, 0.965fr) minmax(414px, 1.035fr);
   grid-template-rows: 1fr;
   background: #fff;
 }
@@ -98,7 +99,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  top: 0;
   width: 100%;
   height: 0%;
   border-radius: 999px;
@@ -122,7 +123,8 @@
   padding: 0.55rem 0.7rem;
   border-radius: 0.75rem;
   border: 1px solid transparent;
-  font-size: 0.8125rem;
+  /* Base was 0.8125rem; +10% for step labels */
+  font-size: 0.894rem;
   line-height: 1.25;
   cursor: pointer;
   transition:
@@ -134,13 +136,19 @@
 .archcalc-nav-step-num {
   flex: 0 0 1.5rem;
   font-family: Poppins, sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 700;
 }
 
 .archcalc-nav-step-label {
   flex: 1;
   text-align: left;
+  font-weight: 700;
+}
+
+.archcalc-nav-step-active .archcalc-nav-step-num,
+.archcalc-nav-step-active .archcalc-nav-step-label {
+  color: #fff;
 }
 
 .archcalc-main-col {
@@ -182,6 +190,45 @@
   padding: 1.25rem 1.25rem 2rem;
 }
 
+.archcalc-breakdown-section {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.75rem;
+}
+
+.archcalc-breakdown-title {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.archcalc-breakdown-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.archcalc-breakdown-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+}
+
+.archcalc-breakdown-item-label {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.archcalc-breakdown-item-value {
+  color: #111;
+  font-family: Poppins, sans-serif;
+  font-weight: 600;
+}
+
 .archcalc-live-kicker {
   margin: 0;
   font-size: 0.65rem;
@@ -193,7 +240,8 @@
 
 .archcalc-pie-wrap {
   position: relative;
-  max-width: 220px;
+  max-width: 280px;
+  width: 100%;
   margin: 0 auto;
   aspect-ratio: 1;
 }
@@ -202,6 +250,176 @@
   display: block;
   width: 100% !important;
   height: auto !important;
+}
+
+.archcalc-pie-legend {
+  max-height: 12rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.archcalc-pie-legend-empty {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.archcalc-pie-legend-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.25rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.archcalc-pie-legend-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.archcalc-pie-legend-swatch {
+  flex: 0 0 0.65rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.2rem;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.archcalc-pie-legend-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.archcalc-pie-legend-label {
+  display: block;
+  color: rgba(0, 0, 0, 0.72);
+  word-break: break-word;
+}
+
+.archcalc-pie-legend-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem 0.5rem;
+  margin-top: 0.1rem;
+  font-family: Poppins, sans-serif;
+  font-weight: 600;
+  color: #111;
+}
+
+.archcalc-pie-legend-pct {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.archcalc-live-summary-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.archcalc-live-summary-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.25rem;
+  margin: 0;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+
+.archcalc-live-summary-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.archcalc-live-summary-row:focus {
+  outline: none;
+}
+
+.archcalc-live-summary-row:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+.archcalc-live-summary-row--active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.archcalc-live-summary-values {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.archcalc-live-summary-pct {
+  min-width: 2.75rem;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.archcalc-live-summary-row--with-bar {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(2.5rem, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.archcalc-live-summary-row-label {
+  min-width: 0;
+}
+
+.archcalc-live-summary-bar-track {
+  display: block;
+  height: 4px;
+  min-width: 2.5rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.archcalc-live-summary-bar-fill {
+  display: block;
+  height: 100%;
+  min-height: 4px;
+  width: 0%;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.38);
+  transition: width 0.2s ease;
+}
+
+.archcalc-legend-details {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.65rem;
+  background: #fff;
+}
+
+.archcalc-legend-summary {
+  list-style: none;
+}
+
+.archcalc-legend-summary::-webkit-details-marker {
+  display: none;
+}
+
+.archcalc-pie-legend-inner {
+  max-height: 10rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.archcalc-scope-area-rate-grid {
+  align-items: end;
 }
 
 @media (max-width: 1023px) {

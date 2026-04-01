@@ -96,7 +96,7 @@
               <div
                 id="progressFill"
                 class="archcalc-nav-progress-fill"
-                style="height: 0%"
+                style="height: 25%"
               ></div>
             </div>
             <nav class="archcalc-nav-vertical">
@@ -178,12 +178,12 @@
                 <div class="mt-2 flex gap-2">
                   <input
                     id="projectAreaInput"
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
                     inputmode="decimal"
+                    autocomplete="off"
+                    data-archcalc-input="area"
                     placeholder="Enter area"
-                    class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                    class="archcalc-input-area w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
                   />
                   <select
                     id="areaUnitSelect"
@@ -257,12 +257,12 @@
                 <div class="mt-2 flex gap-2">
                   <input
                     id="clientBudgetInput"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputmode="decimal"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    data-archcalc-input="money"
                     placeholder="Enter amount"
-                    class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                    class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
                   />
                   <select
                     id="currencySelect"
@@ -291,34 +291,51 @@
                         <span class="font-heading text-sm font-semibold text-black">Architecture (Structure + Facade)</span>
                       </label>
                       <div id="scope_arch_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
-                          <div>
-                            <label for="scope_arch_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
-                            <input id="scope_arch_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                        <div class="archcalc-scope-block space-y-4">
+                          <div class="archcalc-scope-mode-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-black/10 pb-3">
+                            <span class="font-heading text-sm font-semibold text-black">Cost per sqm</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_arch_mode_default" type="radio" name="scope_arch_mode" value="default" class="h-4 w-4 accent-black" />
+                                Use default
+                              </label>
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_arch_mode_own" type="radio" name="scope_arch_mode" value="own" class="h-4 w-4 accent-black" />
+                                Enter my own
+                              </label>
+                            </div>
                           </div>
-                          <div>
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
-                              <div class="flex flex-wrap items-center gap-2">
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_arch_mode_default" type="radio" name="scope_arch_mode" value="default" class="h-4 w-4 accent-black" />
-                                  Use default
-                                </label>
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_arch_mode_own" type="radio" name="scope_arch_mode" value="own" class="h-4 w-4 accent-black" />
-                                  Enter my own
-                                </label>
+                          <div class="archcalc-scope-area-rate-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                            <div>
+                              <label for="scope_arch_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                              <input
+                                id="scope_arch_area"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                data-archcalc-input="area"
+                                class="archcalc-input-area mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                              />
+                            </div>
+                            <div>
+                              <label for="scope_arch_rate" class="font-heading text-sm font-semibold text-black">Rate (THB/sqm)</label>
+                              <div class="mt-2 flex items-center gap-2">
+                                <input
+                                  id="scope_arch_rate"
+                                  type="text"
+                                  inputmode="numeric"
+                                  autocomplete="off"
+                                  data-archcalc-input="money"
+                                  class="archcalc-input-money w-full min-w-0 flex-1 rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                                />
+                                <span class="shrink-0 text-sm text-black/55">THB/sqm</span>
                               </div>
+                              <p id="scope_arch_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <input id="scope_arch_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
-                              <span class="text-sm text-black/55">THB/sqm</span>
-                            </div>
-                            <p id="scope_arch_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                           </div>
-                          <div class="sm:text-right">
+                          <div class="archcalc-scope-subtotal-row flex flex-col items-end gap-1 border-t border-black/10 pt-3 sm:flex-row sm:items-baseline sm:justify-between">
                             <p class="text-sm text-black/55">Subtotal</p>
-                            <p id="scope_arch_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                            <p id="scope_arch_subtotal" class="font-heading text-xl font-bold">฿ 0</p>
                           </div>
                         </div>
                       </div>
@@ -332,34 +349,51 @@
                         <span class="font-heading text-sm font-semibold text-black">Interior Design</span>
                       </label>
                       <div id="scope_int_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
-                          <div>
-                            <label for="scope_int_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
-                            <input id="scope_int_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                        <div class="archcalc-scope-block space-y-4">
+                          <div class="archcalc-scope-mode-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-black/10 pb-3">
+                            <span class="font-heading text-sm font-semibold text-black">Cost per sqm</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_int_mode_default" type="radio" name="scope_int_mode" value="default" class="h-4 w-4 accent-black" />
+                                Use default
+                              </label>
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_int_mode_own" type="radio" name="scope_int_mode" value="own" class="h-4 w-4 accent-black" />
+                                Enter my own
+                              </label>
+                            </div>
                           </div>
-                          <div>
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
-                              <div class="flex flex-wrap items-center gap-2">
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_int_mode_default" type="radio" name="scope_int_mode" value="default" class="h-4 w-4 accent-black" />
-                                  Use default
-                                </label>
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_int_mode_own" type="radio" name="scope_int_mode" value="own" class="h-4 w-4 accent-black" />
-                                  Enter my own
-                                </label>
+                          <div class="archcalc-scope-area-rate-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                            <div>
+                              <label for="scope_int_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                              <input
+                                id="scope_int_area"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                data-archcalc-input="area"
+                                class="archcalc-input-area mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                              />
+                            </div>
+                            <div>
+                              <label for="scope_int_rate" class="font-heading text-sm font-semibold text-black">Rate (THB/sqm)</label>
+                              <div class="mt-2 flex items-center gap-2">
+                                <input
+                                  id="scope_int_rate"
+                                  type="text"
+                                  inputmode="numeric"
+                                  autocomplete="off"
+                                  data-archcalc-input="money"
+                                  class="archcalc-input-money w-full min-w-0 flex-1 rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                                />
+                                <span class="shrink-0 text-sm text-black/55">THB/sqm</span>
                               </div>
+                              <p id="scope_int_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <input id="scope_int_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
-                              <span class="text-sm text-black/55">THB/sqm</span>
-                            </div>
-                            <p id="scope_int_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                           </div>
-                          <div class="sm:text-right">
+                          <div class="archcalc-scope-subtotal-row flex flex-col items-end gap-1 border-t border-black/10 pt-3 sm:flex-row sm:items-baseline sm:justify-between">
                             <p class="text-sm text-black/55">Subtotal</p>
-                            <p id="scope_int_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                            <p id="scope_int_subtotal" class="font-heading text-xl font-bold">฿ 0</p>
                           </div>
                         </div>
                       </div>
@@ -373,34 +407,51 @@
                         <span class="font-heading text-sm font-semibold text-black">Landscape</span>
                       </label>
                       <div id="scope_land_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
-                          <div>
-                            <label for="scope_land_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
-                            <input id="scope_land_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                        <div class="archcalc-scope-block space-y-4">
+                          <div class="archcalc-scope-mode-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-black/10 pb-3">
+                            <span class="font-heading text-sm font-semibold text-black">Cost per sqm</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_land_mode_default" type="radio" name="scope_land_mode" value="default" class="h-4 w-4 accent-black" />
+                                Use default
+                              </label>
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_land_mode_own" type="radio" name="scope_land_mode" value="own" class="h-4 w-4 accent-black" />
+                                Enter my own
+                              </label>
+                            </div>
                           </div>
-                          <div>
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
-                              <div class="flex flex-wrap items-center gap-2">
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_land_mode_default" type="radio" name="scope_land_mode" value="default" class="h-4 w-4 accent-black" />
-                                  Use default
-                                </label>
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_land_mode_own" type="radio" name="scope_land_mode" value="own" class="h-4 w-4 accent-black" />
-                                  Enter my own
-                                </label>
+                          <div class="archcalc-scope-area-rate-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                            <div>
+                              <label for="scope_land_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                              <input
+                                id="scope_land_area"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                data-archcalc-input="area"
+                                class="archcalc-input-area mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                              />
+                            </div>
+                            <div>
+                              <label for="scope_land_rate" class="font-heading text-sm font-semibold text-black">Rate (THB/sqm)</label>
+                              <div class="mt-2 flex items-center gap-2">
+                                <input
+                                  id="scope_land_rate"
+                                  type="text"
+                                  inputmode="numeric"
+                                  autocomplete="off"
+                                  data-archcalc-input="money"
+                                  class="archcalc-input-money w-full min-w-0 flex-1 rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                                />
+                                <span class="shrink-0 text-sm text-black/55">THB/sqm</span>
                               </div>
+                              <p id="scope_land_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <input id="scope_land_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
-                              <span class="text-sm text-black/55">THB/sqm</span>
-                            </div>
-                            <p id="scope_land_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                           </div>
-                          <div class="sm:text-right">
+                          <div class="archcalc-scope-subtotal-row flex flex-col items-end gap-1 border-t border-black/10 pt-3 sm:flex-row sm:items-baseline sm:justify-between">
                             <p class="text-sm text-black/55">Subtotal</p>
-                            <p id="scope_land_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                            <p id="scope_land_subtotal" class="font-heading text-xl font-bold">฿ 0</p>
                           </div>
                         </div>
                       </div>
@@ -414,34 +465,51 @@
                         <span class="font-heading text-sm font-semibold text-black">Demolition / Renovation</span>
                       </label>
                       <div id="scope_demo_fields" class="mt-4 hidden rounded-xl border border-black/10 bg-white p-4">
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
-                          <div>
-                            <label for="scope_demo_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
-                            <input id="scope_demo_area" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
+                        <div class="archcalc-scope-block space-y-4">
+                          <div class="archcalc-scope-mode-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-black/10 pb-3">
+                            <span class="font-heading text-sm font-semibold text-black">Cost per sqm</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_demo_mode_default" type="radio" name="scope_demo_mode" value="default" class="h-4 w-4 accent-black" />
+                                Use default
+                              </label>
+                              <label class="inline-flex items-center gap-2 text-sm text-black/70">
+                                <input id="scope_demo_mode_own" type="radio" name="scope_demo_mode" value="own" class="h-4 w-4 accent-black" />
+                                Enter my own
+                              </label>
+                            </div>
                           </div>
-                          <div>
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                              <p class="font-heading text-sm font-semibold text-black">Cost per sqm</p>
-                              <div class="flex flex-wrap items-center gap-2">
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_demo_mode_default" type="radio" name="scope_demo_mode" value="default" class="h-4 w-4 accent-black" />
-                                  Use default
-                                </label>
-                                <label class="inline-flex items-center gap-2 text-sm text-black/70">
-                                  <input id="scope_demo_mode_own" type="radio" name="scope_demo_mode" value="own" class="h-4 w-4 accent-black" />
-                                  Enter my own
-                                </label>
+                          <div class="archcalc-scope-area-rate-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                            <div>
+                              <label for="scope_demo_area" class="font-heading text-sm font-semibold text-black">Area (sqm)</label>
+                              <input
+                                id="scope_demo_area"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                data-archcalc-input="area"
+                                class="archcalc-input-area mt-2 w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                              />
+                            </div>
+                            <div>
+                              <label for="scope_demo_rate" class="font-heading text-sm font-semibold text-black">Rate (THB/sqm)</label>
+                              <div class="mt-2 flex items-center gap-2">
+                                <input
+                                  id="scope_demo_rate"
+                                  type="text"
+                                  inputmode="numeric"
+                                  autocomplete="off"
+                                  data-archcalc-input="money"
+                                  class="archcalc-input-money w-full min-w-0 flex-1 rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black"
+                                />
+                                <span class="shrink-0 text-sm text-black/55">THB/sqm</span>
                               </div>
+                              <p id="scope_demo_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <input id="scope_demo_rate" type="number" min="0" step="1" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black" />
-                              <span class="text-sm text-black/55">THB/sqm</span>
-                            </div>
-                            <p id="scope_demo_hint" class="mt-2 text-sm text-black/55">Range: —</p>
                           </div>
-                          <div class="sm:text-right">
+                          <div class="archcalc-scope-subtotal-row flex flex-col items-end gap-1 border-t border-black/10 pt-3 sm:flex-row sm:items-baseline sm:justify-between">
                             <p class="text-sm text-black/55">Subtotal</p>
-                            <p id="scope_demo_subtotal" class="mt-2 font-heading text-xl font-bold">฿ 0</p>
+                            <p id="scope_demo_subtotal" class="font-heading text-xl font-bold">฿ 0</p>
                           </div>
                         </div>
                       </div>
@@ -474,7 +542,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Furniture & Décor</span>
                       </label>
                       <div id="ops_furniture_fields" class="mt-3 hidden">
-                        <input id="ops_furniture_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_furniture_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                       </div>
                     </div>
 
@@ -484,7 +552,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Kitchen Equipment</span>
                       </label>
                       <div id="ops_kitchen_fields" class="mt-3 hidden">
-                        <input id="ops_kitchen_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_kitchen_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                       </div>
                     </div>
 
@@ -494,7 +562,7 @@
                         <span class="font-heading text-sm font-semibold text-black">POS & Technology</span>
                       </label>
                       <div id="ops_pos_fields" class="mt-3 hidden">
-                        <input id="ops_pos_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_pos_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                       </div>
                     </div>
 
@@ -504,7 +572,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Signage & Branding</span>
                       </label>
                       <div id="ops_signage_fields" class="mt-3 hidden">
-                        <input id="ops_signage_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_signage_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                       </div>
                     </div>
 
@@ -514,7 +582,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Cleaning & Handover</span>
                       </label>
                       <div id="ops_cleaning_fields" class="mt-3 hidden">
-                        <input id="ops_cleaning_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_cleaning_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                       </div>
                     </div>
 
@@ -524,7 +592,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Franchise / Brand Fee</span>
                       </label>
                       <div id="ops_franchise_fields" class="mt-3 hidden space-y-2">
-                        <input id="ops_franchise_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_franchise_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                         <p class="text-sm text-black/55">deposit, license, royalty</p>
                       </div>
                     </div>
@@ -535,7 +603,7 @@
                         <span class="font-heading text-sm font-semibold text-black">Pre-opening Operations</span>
                       </label>
                       <div id="ops_preopen_fields" class="mt-3 hidden space-y-2">
-                        <input id="ops_preopen_amount" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="THB" />
+                        <input id="ops_preopen_amount" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="THB" />
                         <p class="text-sm text-black/55">staff training, stock, soft launch</p>
                       </div>
                     </div>
@@ -577,11 +645,11 @@
                       <div class="flex items-center gap-2">
                         <input
                           id="designFeePercentInput"
-                          type="number"
-                          min="0"
-                          step="0.1"
+                          type="text"
                           inputmode="decimal"
-                          class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52"
+                          autocomplete="off"
+                          data-archcalc-input="percent"
+                          class="archcalc-input-percent w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-52"
                           placeholder="e.g. 8.5"
                         />
                         <span class="text-sm text-black/55">%</span>
@@ -619,14 +687,14 @@
                       <div>
                         <label for="submissionFeeInput" class="font-heading text-sm font-semibold text-black">Submission fee</label>
                         <div class="mt-2 flex items-center gap-2">
-                          <input id="submissionFeeInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" />
+                          <input id="submissionFeeInput" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" />
                           <span class="text-sm text-black/55">THB</span>
                         </div>
                       </div>
                       <div>
                         <label for="structEngFeeInput" class="font-heading text-sm font-semibold text-black">Structural engineering</label>
                         <div class="mt-2 flex items-center gap-2">
-                          <input id="structEngFeeInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" />
+                          <input id="structEngFeeInput" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" />
                           <span class="text-sm text-black/55">THB</span>
                         </div>
                         <p class="mt-2 text-sm text-black/55">Default: area × 1,000 THB</p>
@@ -638,7 +706,7 @@
                       <div>
                         <label for="consultantFeesInput" class="font-heading text-sm font-semibold text-black">Other consultants (optional)</label>
                         <div class="mt-2 flex items-center gap-2">
-                          <input id="consultantFeesInput" type="number" min="0" step="100" inputmode="numeric" class="w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base outline-none transition focus:border-black sm:w-72" placeholder="0" />
+                          <input id="consultantFeesInput" type="text" inputmode="numeric" autocomplete="off" data-archcalc-input="money" class="archcalc-input-money w-full rounded-xl border border-black/20 bg-white px-4 py-3 text-base text-black outline-none transition focus:border-black sm:w-72" placeholder="0" />
                           <span class="text-sm text-black/55">THB</span>
                         </div>
                       </div>
@@ -734,10 +802,7 @@
 
               <div class="archcalc-live-budget-block mt-6">
                 <p class="archcalc-live-kicker">Budget mix</p>
-                <div class="archcalc-pie-wrap">
-                  <canvas id="liveBudgetPieCanvas" width="220" height="220"></canvas>
-                </div>
-                <div class="archcalc-live-toggles mt-4 space-y-2">
+                <div class="archcalc-live-toggles mt-2 space-y-2">
                   <label class="archcalc-toggle-row flex cursor-pointer items-center gap-2 text-sm">
                     <input id="includeScopeInLive" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" checked />
                     <span>Include construction</span>
@@ -751,21 +816,58 @@
                     <span>Include design &amp; fees</span>
                   </label>
                 </div>
+                <div class="archcalc-pie-wrap mt-4">
+                  <canvas id="liveBudgetPieCanvas" width="280" height="280"></canvas>
+                </div>
+                <details class="archcalc-legend-details mt-3">
+                  <summary class="archcalc-legend-summary cursor-pointer select-none text-sm font-medium text-black/70">Legend</summary>
+                  <div id="liveBudgetPieLegend" class="archcalc-pie-legend archcalc-pie-legend-inner mt-2" aria-label="Budget mix segments"></div>
+                </details>
               </div>
 
-              <div class="archcalc-live-budget-rows mt-6 space-y-2 text-sm">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-black/60">Construction</span>
-                  <span id="resultsScopeTotalText" class="font-heading font-semibold">฿ 0</span>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-black/60">Operations</span>
-                  <span id="resultsOpsTotalText" class="font-heading font-semibold">฿ 0</span>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-black/60">Design &amp; fees</span>
-                  <span id="resultsDesignFeesTotalText" class="font-heading font-semibold">฿ 0</span>
-                </div>
+              <div id="liveBudgetSummaryRows" class="archcalc-live-summary-rows mt-6 space-y-2 text-sm">
+                <button
+                  type="button"
+                  class="archcalc-live-summary-row archcalc-live-summary-row--with-bar"
+                  data-live-section="scope"
+                  aria-pressed="false"
+                  aria-label="Construction total and share; highlight construction slices in chart"
+                >
+                  <span class="archcalc-live-summary-row-label text-black/60">Construction</span>
+                  <span class="archcalc-live-summary-bar-track" aria-hidden="true"><span id="liveScopeBarFill" class="archcalc-live-summary-bar-fill"></span></span>
+                  <span class="archcalc-live-summary-values">
+                    <span id="liveScopePctText" class="archcalc-live-summary-pct text-black/50">—</span>
+                    <span id="resultsScopeTotalText" class="font-heading font-semibold tabular-nums">฿ 0</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="archcalc-live-summary-row archcalc-live-summary-row--with-bar"
+                  data-live-section="ops"
+                  aria-pressed="false"
+                  aria-label="Operations total and share; highlight operations slices in chart"
+                >
+                  <span class="archcalc-live-summary-row-label text-black/60">Operations</span>
+                  <span class="archcalc-live-summary-bar-track" aria-hidden="true"><span id="liveOpsBarFill" class="archcalc-live-summary-bar-fill"></span></span>
+                  <span class="archcalc-live-summary-values">
+                    <span id="liveOpsPctText" class="archcalc-live-summary-pct text-black/50">—</span>
+                    <span id="resultsOpsTotalText" class="font-heading font-semibold tabular-nums">฿ 0</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="archcalc-live-summary-row archcalc-live-summary-row--with-bar"
+                  data-live-section="design"
+                  aria-pressed="false"
+                  aria-label="Design and fees total and share; highlight design slices in chart"
+                >
+                  <span class="archcalc-live-summary-row-label text-black/60">Design &amp; fees</span>
+                  <span class="archcalc-live-summary-bar-track" aria-hidden="true"><span id="liveDesignBarFill" class="archcalc-live-summary-bar-fill"></span></span>
+                  <span class="archcalc-live-summary-values">
+                    <span id="liveDesignPctText" class="archcalc-live-summary-pct text-black/50">—</span>
+                    <span id="resultsDesignFeesTotalText" class="font-heading font-semibold tabular-nums">฿ 0</span>
+                  </span>
+                </button>
               </div>
 
               <div class="archcalc-live-totals mt-6 space-y-3 border-t border-black/10 pt-4 text-sm">
@@ -792,6 +894,21 @@
                   <span class="text-black/60">Variance (full)</span>
                   <span id="resultsGapText" class="font-heading font-semibold">—</span>
                 </div>
+              </div>
+
+              <div class="mt-4 space-y-3">
+                <section class="archcalc-breakdown-section">
+                  <p class="archcalc-breakdown-title">Construction detail</p>
+                  <ul id="liveScopeBreakdown" class="archcalc-breakdown-list"></ul>
+                </section>
+                <section class="archcalc-breakdown-section">
+                  <p class="archcalc-breakdown-title">Operations detail</p>
+                  <ul id="liveOpsBreakdown" class="archcalc-breakdown-list"></ul>
+                </section>
+                <section class="archcalc-breakdown-section">
+                  <p class="archcalc-breakdown-title">Design &amp; fees detail</p>
+                  <ul id="liveDesignBreakdown" class="archcalc-breakdown-list"></ul>
+                </section>
               </div>
 
               <h3 class="archcalc-results-budget-kicker mt-6">Input recap</h3>
