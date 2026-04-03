@@ -37,6 +37,8 @@
   };
 
   let liveBudgetChart = null;
+  /** @type {Element | null} */
+  let exportModalLastFocus = null;
   /** Last non-empty chart slice model (for section highlight after updates). */
   let lastChartSlices = [];
   /** @type {null | "scope" | "ops" | "design"} */
@@ -222,6 +224,9 @@
     if (stepCounterText) stepCounterText.textContent = `Step ${currentStep} of ${totalSteps}`;
     if (stepTitleText) stepTitleText.textContent = STEP_META[currentStep - 1].title;
     if (stepDescriptionText) stepDescriptionText.textContent = STEP_META[currentStep - 1].description;
+
+    const nextBtn = qs("nextStepBtn");
+    if (nextBtn) nextBtn.textContent = currentStep === totalSteps ? "Export →" : "Next →";
 
     stepDots.forEach((dot, idx) => {
       const stepNumber = idx + 1;
@@ -1015,6 +1020,100 @@
     updateLiveDashboard();
   }
 
+  function stripIdsFromSubtree(el) {
+    if (el.nodeType !== 1) return;
+    el.removeAttribute("id");
+    if (el.tagName === "LABEL" && el.hasAttribute("for")) el.removeAttribute("for");
+    Array.from(el.children).forEach(stripIdsFromSubtree);
+  }
+
+  function sanitizeExportClone(clone) {
+    const liveCanvas = qs("liveBudgetPieCanvas");
+    const cCanvas = clone.querySelector("canvas");
+    if (cCanvas && liveCanvas) {
+      try {
+        const img = document.createElement("img");
+        img.src = liveCanvas.toDataURL("image/png");
+        img.alt = "Budget mix chart";
+        img.className = "archcalc-export-chart-img";
+        cCanvas.replaceWith(img);
+      } catch (_) {
+        cCanvas.remove();
+      }
+    } else if (cCanvas) {
+      cCanvas.remove();
+    }
+
+    const toggles = clone.querySelector(".archcalc-live-toggles");
+    if (toggles) {
+      const scopeOn = qs("includeScopeInLive")?.checked;
+      const opsOn = qs("includeOpsInLive")?.checked;
+      const designOn = qs("includeDesignInLive")?.checked;
+      const box = document.createElement("div");
+      box.className = "archcalc-export-toggles-text mt-2 space-y-1 text-sm text-black/80";
+      box.innerHTML = `<p>Include construction: ${scopeOn ? "Yes" : "No"}</p><p>Include operations: ${opsOn ? "Yes" : "No"}</p><p>Include design &amp; fees: ${designOn ? "Yes" : "No"}</p>`;
+      toggles.replaceWith(box);
+    }
+
+    clone.querySelectorAll("[data-live-section]").forEach((btn) => {
+      const div = document.createElement("div");
+      div.className = btn.className;
+      div.removeAttribute("data-live-section");
+      div.removeAttribute("aria-pressed");
+      div.removeAttribute("aria-label");
+      div.removeAttribute("type");
+      div.innerHTML = btn.innerHTML;
+      btn.replaceWith(div);
+    });
+
+    const det = clone.querySelector("details.archcalc-legend-details");
+    if (det) det.setAttribute("open", "");
+
+    stripIdsFromSubtree(clone);
+  }
+
+  function openExportPreview() {
+    const src = qs("archcalcExportSource");
+    const root = qs("archcalcExportPreviewRoot");
+    const modal = qs("archcalcExportModal");
+    if (!src || !root || !modal) return;
+
+    root.replaceChildren();
+    const clone = src.cloneNode(true);
+    sanitizeExportClone(clone);
+    root.appendChild(clone);
+
+    exportModalLastFocus = document.activeElement;
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    qs("archcalcExportDownloadBtn")?.focus();
+  }
+
+  function closeExportPreview() {
+    const modal = qs("archcalcExportModal");
+    const root = qs("archcalcExportPreviewRoot");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+    if (root) root.replaceChildren();
+    if (exportModalLastFocus && typeof exportModalLastFocus.focus === "function") {
+      exportModalLastFocus.focus();
+    }
+    exportModalLastFocus = null;
+  }
+
+  function triggerExportPrint() {
+    document.body.classList.add("archcalc-printing-export");
+    window.addEventListener(
+      "afterprint",
+      () => {
+        document.body.classList.remove("archcalc-printing-export");
+      },
+      { once: true }
+    );
+    window.print();
+  }
+
   function wireEvents() {
     qs("startCalculationBtn")?.addEventListener("click", () => {
       showForm();
@@ -1033,11 +1132,24 @@
     });
 
     qs("nextStepBtn")?.addEventListener("click", () => {
-      if (currentStep < STEP_META.length) {
-        currentStep += 1;
-        updateProgressUi(currentStep);
-        calculateAll();
+      if (currentStep === STEP_META.length) {
+        openExportPreview();
+        return;
       }
+      currentStep += 1;
+      updateProgressUi(currentStep);
+      calculateAll();
+    });
+
+    qs("archcalcExportBtn")?.addEventListener("click", openExportPreview);
+    qs("archcalcExportCloseBtn")?.addEventListener("click", closeExportPreview);
+    qs("archcalcExportDownloadBtn")?.addEventListener("click", triggerExportPrint);
+    qs("archcalcExportModal")?.addEventListener("click", (e) => {
+      if (e.target.classList.contains("archcalc-export-modal-backdrop")) closeExportPreview();
+    });
+    document.addEventListener("keydown", (e) => {
+      const modal = qs("archcalcExportModal");
+      if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) closeExportPreview();
     });
 
     getStepDots().forEach((dot) => {

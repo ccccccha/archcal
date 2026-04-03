@@ -794,38 +794,58 @@
 
           <aside class="archcalc-live-panel" aria-label="Live budget">
             <div class="archcalc-live-inner">
-              <p class="archcalc-live-kicker">Project</p>
-              <p id="liveProjectNameDisplay" class="archcalc-live-project-name font-heading text-lg font-semibold text-black">
-                Untitled project
-              </p>
-              <p id="liveProjectAreaDisplay" class="archcalc-live-project-area mt-1 text-sm text-black/60">—</p>
-
-              <div class="archcalc-live-budget-block mt-6">
-                <p class="archcalc-live-kicker">Budget mix</p>
-                <div class="archcalc-live-toggles mt-2 space-y-2">
-                  <label class="archcalc-toggle-row flex cursor-pointer items-center gap-2 text-sm">
-                    <input id="includeScopeInLive" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" checked />
-                    <span>Include construction</span>
-                  </label>
-                  <label class="archcalc-toggle-row flex cursor-pointer items-center gap-2 text-sm">
-                    <input id="includeOpsInLive" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" checked />
-                    <span>Include operations</span>
-                  </label>
-                  <label class="archcalc-toggle-row flex cursor-pointer items-center gap-2 text-sm">
-                    <input id="includeDesignInLive" type="checkbox" class="h-4 w-4 rounded border-black/30 accent-black" checked />
-                    <span>Include design &amp; fees</span>
-                  </label>
+              <div id="archcalcExportSource" class="archcalc-export-source">
+              <div class="archcalc-live-top-grid">
+                <div class="archcalc-live-project-col min-w-0">
+                  <div class="archcalc-live-project-headline flex flex-wrap items-baseline gap-x-2 gap-y-0">
+                    <p class="archcalc-live-kicker">Project</p>
+                    <p id="liveProjectNameDisplay" class="archcalc-live-project-name font-heading text-lg font-semibold text-black">
+                      Untitled project
+                    </p>
+                  </div>
+                  <p id="liveProjectAreaDisplay" class="archcalc-live-project-area mt-1 text-sm text-black/60">—</p>
                 </div>
-                <div class="archcalc-pie-wrap mt-4">
+                <div class="archcalc-live-controls-col flex shrink-0 flex-col items-end gap-2">
+                  <button
+                    type="button"
+                    id="archcalcExportBtn"
+                    class="archcalc-export-fab"
+                    aria-label="Export or print results"
+                    title="Export"
+                  >
+                    <span class="archcalc-export-fab-icon" aria-hidden="true">↓</span>
+                  </button>
+                  <div class="archcalc-live-budget-quick w-full sm:max-w-[14rem]">
+                    <p class="archcalc-live-kicker text-right">Budget mix</p>
+                    <div class="archcalc-live-toggles mt-2 space-y-2">
+                      <label class="archcalc-toggle-row flex cursor-pointer items-center justify-end gap-2 text-sm">
+                        <input id="includeScopeInLive" type="checkbox" class="h-4 w-4 shrink-0 rounded border-black/30 accent-black" checked />
+                        <span>Include construction</span>
+                      </label>
+                      <label class="archcalc-toggle-row flex cursor-pointer items-center justify-end gap-2 text-sm">
+                        <input id="includeOpsInLive" type="checkbox" class="h-4 w-4 shrink-0 rounded border-black/30 accent-black" checked />
+                        <span>Include operations</span>
+                      </label>
+                      <label class="archcalc-toggle-row flex cursor-pointer items-center justify-end gap-2 text-sm">
+                        <input id="includeDesignInLive" type="checkbox" class="h-4 w-4 shrink-0 rounded border-black/30 accent-black" checked />
+                        <span>Include design &amp; fees</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="archcalc-live-budget-block archcalc-live-chart-block mt-3">
+                <div class="archcalc-pie-wrap mt-2">
                   <canvas id="liveBudgetPieCanvas" width="280" height="280"></canvas>
                 </div>
-                <details class="archcalc-legend-details mt-3">
+                <details class="archcalc-legend-details archcalc-legend-details--spaced">
                   <summary class="archcalc-legend-summary cursor-pointer select-none text-sm font-medium text-black/70">Legend</summary>
                   <div id="liveBudgetPieLegend" class="archcalc-pie-legend archcalc-pie-legend-inner mt-2" aria-label="Budget mix segments"></div>
                 </details>
               </div>
 
-              <div id="liveBudgetSummaryRows" class="archcalc-live-summary-rows mt-6 space-y-2 text-sm">
+              <div id="liveBudgetSummaryRows" class="archcalc-live-summary-rows mt-4 space-y-2 text-sm">
                 <button
                   type="button"
                   class="archcalc-live-summary-row archcalc-live-summary-row--with-bar"
@@ -870,7 +890,7 @@
                 </button>
               </div>
 
-              <div class="archcalc-live-totals mt-6 space-y-3 border-t border-black/10 pt-4 text-sm">
+              <div class="archcalc-live-totals mt-4 space-y-3 border-t border-black/10 pt-3 text-sm">
                 <div class="flex items-center justify-between gap-2">
                   <span class="font-heading font-semibold text-black">Full estimate</span>
                   <span id="resultsGrandTotalText" class="font-heading font-semibold">฿ 0</span>
@@ -913,11 +933,49 @@
 
               <h3 class="archcalc-results-budget-kicker mt-6">Input recap</h3>
               <div id="resultsInputsSummaryRoot" class="archcalc-results-summary-root mt-3 space-y-4"></div>
+              </div>
             </div>
           </aside>
         </div>
       </section>
     </main>
+
+    <div
+      id="archcalcExportModal"
+      class="archcalc-export-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="archcalcExportModalTitle"
+      aria-hidden="true"
+    >
+      <div class="archcalc-export-modal-backdrop" aria-hidden="true"></div>
+      <div class="archcalc-export-modal-panel">
+        <div class="archcalc-export-modal-header">
+          <h2 id="archcalcExportModalTitle" class="archcalc-export-modal-title font-heading text-lg font-semibold text-black">
+            Preview
+          </h2>
+          <div class="archcalc-export-modal-actions flex items-center gap-2">
+            <button
+              type="button"
+              id="archcalcExportDownloadBtn"
+              class="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition hover:opacity-90"
+            >
+              Download
+            </button>
+            <button
+              type="button"
+              id="archcalcExportCloseBtn"
+              class="rounded-full border border-black/20 bg-white px-5 py-2 text-sm font-medium text-black transition hover:border-black/40"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        <div class="archcalc-export-modal-body">
+          <div id="archcalcExportPreviewRoot" class="archcalc-export-paper"></div>
+        </div>
+      </div>
+    </div>
 
     <script src="data.js"></script>
     <script src="calculator.js"></script>
