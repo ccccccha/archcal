@@ -88,6 +88,23 @@
 .archcalc-nav-brand {
   flex-shrink: 0;
   line-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.archcalc-nav-brand:focus {
+  outline: none;
+}
+
+.archcalc-nav-brand:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 3px;
+  border-radius: 0.35rem;
 }
 
 .archcalc-nav-logo {

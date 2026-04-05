@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ARCHCALC | Premium Architectural Budget Calculator</title>
+    <title>ARCHCAL | Premium Architectural Budget Calculator</title>
     <meta
       name="description"
-      content="ARCHCALC helps Thailand-based architects and property owners gain budget clarity with confidence."
+      content="ARCHCAL — the architect's financial brain. Budget clarity for Thailand-based architects and property owners."
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,33 +35,6 @@
   </head>
   <body class="bg-white text-black font-body antialiased">
     <main class="relative min-h-screen overflow-hidden">
-      <div
-        class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-20"
-        aria-hidden="true"
-      >
-        <svg
-          class="h-[80vh] w-[90vw] max-w-6xl"
-          viewBox="0 0 1000 700"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="120" y="80" width="760" height="540" />
-            <line x1="120" y1="240" x2="880" y2="240" />
-            <line x1="120" y1="420" x2="880" y2="420" />
-            <line x1="360" y1="80" x2="360" y2="620" />
-            <line x1="640" y1="80" x2="640" y2="620" />
-            <line x1="360" y1="240" x2="640" y2="420" />
-            <line x1="360" y1="420" x2="640" y2="240" />
-            <line x1="170" y1="130" x2="330" y2="130" />
-            <line x1="410" y1="510" x2="590" y2="510" />
-            <line x1="700" y1="310" x2="830" y2="310" />
-            <path d="M120 80 C170 55 230 55 280 80" />
-            <path d="M720 620 C770 645 830 645 880 620" />
-          </g>
-        </svg>
-      </div>
-
       <section
         id="heroSection"
         class="relative z-10 flex min-h-screen items-center justify-center px-6 transition-all duration-500 ease-out"
@@ -69,7 +42,7 @@
         <div class="text-center">
           <img
             src="assets/logo.png"
-            alt="ARCHCALC"
+            alt="ARCHCAL"
             width="112"
             height="112"
             class="archcalc-hero-logo mx-auto mb-8 block h-auto w-20 object-contain sm:mb-10 sm:w-24 md:mb-12 md:w-28"
@@ -78,10 +51,10 @@
           <h1
             class="font-heading text-6xl font-bold tracking-[0.18em] text-black sm:text-7xl md:text-8xl"
           >
-            ARCHCALC
+            ARCHCAL
           </h1>
           <p class="mx-auto mt-6 max-w-2xl text-lg text-black/75 sm:text-xl">
-            Budget clarity for architects and their clients
+            The Architect&#8217;s Financial Brain.
           </p>
           <button
             id="startCalculationBtn"
@@ -100,16 +73,21 @@
       >
         <div class="archcalc-workspace">
           <aside class="archcalc-nav-col" aria-label="Steps">
-            <div class="archcalc-nav-brand">
+            <button
+              type="button"
+              id="archcalcNavLogoBtn"
+              class="archcalc-nav-brand"
+              aria-label="Back to home"
+            >
               <img
                 src="assets/logo.png"
-                alt="ARCHCALC"
+                alt="ARCHCAL"
                 width="48"
                 height="48"
                 class="archcalc-nav-logo"
                 decoding="async"
               />
-            </div>
+            </button>
             <div class="archcalc-nav-main">
             <div class="archcalc-nav-progress-track" aria-hidden="true">
               <div

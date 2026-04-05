@@ -1131,6 +1131,11 @@
       showHero();
     });
 
+    qs("archcalcNavLogoBtn")?.addEventListener("click", () => {
+      closeExportPreview();
+      showHero();
+    });
+
     qs("nextStepBtn")?.addEventListener("click", () => {
       if (currentStep === STEP_META.length) {
         openExportPreview();
