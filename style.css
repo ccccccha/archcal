@@ -493,11 +493,25 @@
 }
 
 @media (max-width: 1023px) {
+  /* Override Tailwind overflow-hidden on main so tall form content can scroll on phones */
+  main {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Scroll the workspace when nav + form + live panel exceed the viewport */
+  #stepOneSection {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+    max-height: 100dvh;
+  }
+
   #stepOneSection > .archcalc-workspace {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr) auto;
     height: auto;
-    min-height: 100%;
+    min-height: 0;
   }
 
   .archcalc-nav-col {
@@ -542,7 +556,7 @@
 
   .archcalc-main-col {
     border-right: none;
-    min-height: min(70vh, 720px);
+    min-height: 0;
   }
 
   .archcalc-live-panel {
